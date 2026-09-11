@@ -15,6 +15,15 @@ def test_01_health(client: TestClient):
     assert response.json() == {"status": "ok"}
 
 
+def test_01b_api_root(client: TestClient):
+    """Verify GET /api/v1 root version endpoint."""
+    response = client.get("/api/v1")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["version"] == "1.0.0"
+    assert data["status"] == "active"
+
+
 def test_02_health_db(client: TestClient):
     """Verify database health endpoint."""
     response = client.get("/health/db")
@@ -148,7 +157,14 @@ def test_11_department_detail_cse(client: TestClient):
 
 
 def test_12_department_not_found(client: TestClient):
-    """Verify 404 for invalid department code."""
-    response = client.get("/api/v1/departments/NONEXISTENT_DEPT")
+    """Verify 404 for nonexistent department code."""
+    response = client.get("/api/v1/departments/NONEXIST")
     assert response.status_code == 404
     assert "not found" in response.json()["detail"].lower()
+
+
+def test_12b_department_invalid_format(client: TestClient):
+    """Verify 400 Bad Request for malformed department code."""
+    response = client.get("/api/v1/departments/D!")
+    assert response.status_code == 400
+    assert "invalid department code" in response.json()["detail"].lower()

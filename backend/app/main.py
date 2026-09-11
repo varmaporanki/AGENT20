@@ -72,6 +72,22 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
+# Root API Version Endpoint
+@app.get(
+    "/api/v1",
+    tags=["Root"],
+    summary="API Root Information",
+    description="Returns API service name, version, status, and link to documentation.",
+)
+def api_root():
+    return {
+        "name": "Agent 20 — Research Productivity Analytics API",
+        "version": "1.0.0",
+        "status": "active",
+        "docs": "/docs",
+    }
+
+
 # Mount Routers
 app.include_router(health_router)
 app.include_router(faculty_router)

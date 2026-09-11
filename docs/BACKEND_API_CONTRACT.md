@@ -20,6 +20,7 @@ This document establishes the official REST API contract for **Agent 20 (Researc
 | :--- | :--- | :--- | :--- |
 | `GET` | `/health` | Server health probe | None |
 | `GET` | `/health/db` | Database connectivity probe | None |
+| `GET` | `/api/v1` | API version & metadata | None |
 | `GET` | `/api/v1/faculty` | Paginated faculty list | `page`, `page_size`, `department` |
 | `GET` | `/api/v1/faculty/{employee_no}` | Single faculty full profile | None |
 | `GET` | `/api/v1/rankings` | Institution & department rankings | `department` |
@@ -58,6 +59,19 @@ Probes PostgreSQL database connectivity.
   "status": "disconnected",
   "database": "acadagents",
   "message": "Unable to connect to PostgreSQL database"
+}
+```
+
+### `GET /api/v1`
+Returns API metadata, version, and documentation link.
+
+**Response `200 OK`**:
+```json
+{
+  "name": "Agent 20 — Research Productivity Analytics API",
+  "version": "1.0.0",
+  "status": "active",
+  "docs": "/docs"
 }
 ```
 
