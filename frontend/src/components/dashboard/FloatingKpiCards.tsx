@@ -1,11 +1,54 @@
 import React from 'react';
 import type { InstitutionOverview } from '../../services/types';
 import { Users, BarChart3, BookCheck, IndianRupee, Lightbulb } from 'lucide-react';
+import { useCardTilt } from '../../utils/useCardTilt';
 
 interface FloatingKpiCardsProps {
   overview?: InstitutionOverview | null;
   loading?: boolean;
 }
+
+interface SingleKpiProps {
+  icon: React.ReactNode;
+  iconBg: string;
+  iconColor: string;
+  label: string;
+  value: string;
+  subtext: string;
+  valueColor?: string;
+}
+
+const SingleKpiCard: React.FC<SingleKpiProps> = ({
+  icon,
+  iconBg,
+  iconColor,
+  label,
+  value,
+  subtext,
+  valueColor
+}) => {
+  const cardRef = useCardTilt<HTMLDivElement>({ maxTilt: 1.5, lift: -6, scale: 1.015 });
+
+  return (
+    <div ref={cardRef} className="kpi-card tilt-card">
+      <div className="specular-overlay" />
+      <div className="card-content-elevated">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+          <div className="kpi-icon-pill" style={{ background: iconBg, color: iconColor }}>
+            {icon}
+          </div>
+          <span className="kpi-label">{label}</span>
+        </div>
+        <span className="kpi-value" style={{ color: valueColor }}>
+          {value}
+        </span>
+        <div className="kpi-subtext">
+          {subtext}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const FloatingKpiCards: React.FC<FloatingKpiCardsProps> = ({ overview, loading = false }) => {
   const formatValue = (val: number | null | undefined, suffix = '', prefix = '') => {
@@ -17,86 +60,81 @@ export const FloatingKpiCards: React.FC<FloatingKpiCardsProps> = ({ overview, lo
   return (
     <div className="floating-kpi-container">
       {/* 1. Active Faculty */}
-      <div className="kpi-card">
-        <span className="kpi-label" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <Users size={12} color="#2563eb" />
-          Active Faculty
-        </span>
-        <span className="kpi-value">
-          {formatValue(overview?.total_faculty)}
-        </span>
-        <span className="kpi-subtext">
-          {overview?.total_faculty !== null && overview?.total_faculty !== undefined
-            ? `Verified department roster`
-            : 'Awaiting API connection'}
-        </span>
-      </div>
+      <SingleKpiCard
+        icon={<Users size={13} />}
+        iconBg="#eff6ff"
+        iconColor="#2563eb"
+        label="Active Faculty"
+        value={formatValue(overview?.total_faculty)}
+        subtext={
+          overview?.total_faculty !== null && overview?.total_faculty !== undefined
+            ? 'Verified department roster'
+            : 'Awaiting API connection'
+        }
+      />
 
       {/* 2. Institutional Mean */}
-      <div className="kpi-card">
-        <span className="kpi-label" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <BarChart3 size={12} color="#059669" />
-          Institutional Mean
-        </span>
-        <span className="kpi-value" style={{ color: overview?.mean_score ? '#059669' : undefined }}>
-          {formatValue(overview?.mean_score)}
-        </span>
-        <span className="kpi-subtext">
-          {overview?.mean_score !== null && overview?.mean_score !== undefined
+      <SingleKpiCard
+        icon={<BarChart3 size={13} />}
+        iconBg="#ecfdf5"
+        iconColor="#059669"
+        label="Institutional Mean"
+        value={formatValue(overview?.mean_score)}
+        valueColor={overview?.mean_score ? '#059669' : undefined}
+        subtext={
+          overview?.mean_score !== null && overview?.mean_score !== undefined
             ? 'Normalized 0–100 Scale'
-            : 'Awaiting API connection'}
-        </span>
-      </div>
+            : 'Awaiting API connection'
+        }
+      />
 
       {/* 3. Publications */}
-      <div className="kpi-card">
-        <span className="kpi-label" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <BookCheck size={12} color="#2563eb" />
-          Publications
-        </span>
-        <span className="kpi-value">
-          {formatValue(overview?.total_publications)}
-        </span>
-        <span className="kpi-subtext">
-          {overview?.q1_publication_percentage !== null && overview?.q1_publication_percentage !== undefined
+      <SingleKpiCard
+        icon={<BookCheck size={13} />}
+        iconBg="#eff6ff"
+        iconColor="#2563eb"
+        label="Publications"
+        value={formatValue(overview?.total_publications)}
+        subtext={
+          overview?.q1_publication_percentage !== null && overview?.q1_publication_percentage !== undefined
             ? `${overview.q1_publication_percentage}% in Top Q1 Venues`
-            : 'Awaiting API connection'}
-        </span>
-      </div>
+            : 'Awaiting API connection'
+        }
+      />
 
       {/* 4. Sponsored Grants */}
-      <div className="kpi-card">
-        <span className="kpi-label" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <IndianRupee size={12} color="#7c3aed" />
-          Sponsored Grants
-        </span>
-        <span className="kpi-value" style={{ color: overview?.total_grant_funding_lakhs ? '#7c3aed' : undefined }}>
-          {overview?.total_grant_funding_lakhs !== null && overview?.total_grant_funding_lakhs !== undefined
+      <SingleKpiCard
+        icon={<IndianRupee size={13} />}
+        iconBg="#f5f3ff"
+        iconColor="#7c3aed"
+        label="Sponsored Grants"
+        value={
+          overview?.total_grant_funding_lakhs !== null && overview?.total_grant_funding_lakhs !== undefined
             ? `₹${overview.total_grant_funding_lakhs}L`
-            : '—'}
-        </span>
-        <span className="kpi-subtext">
-          {overview?.total_grant_funding_lakhs !== null && overview?.total_grant_funding_lakhs !== undefined
+            : '—'
+        }
+        valueColor={overview?.total_grant_funding_lakhs ? '#7c3aed' : undefined}
+        subtext={
+          overview?.total_grant_funding_lakhs !== null && overview?.total_grant_funding_lakhs !== undefined
             ? 'Competitive national grants'
-            : 'Awaiting API connection'}
-        </span>
-      </div>
+            : 'Awaiting API connection'
+        }
+      />
 
       {/* 5. Patents & IP */}
-      <div className="kpi-card">
-        <span className="kpi-label" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <Lightbulb size={12} color="#d97706" />
-          Patents & IP
-        </span>
-        <span className="kpi-value" style={{ color: overview?.active_patents ? '#d97706' : undefined }}>
-          {formatValue(overview?.active_patents)}
-        </span>
-        <span className="kpi-subtext">
-          {overview?.active_patents !== null && overview?.active_patents !== undefined
+      <SingleKpiCard
+        icon={<Lightbulb size={13} />}
+        iconBg="#fffbeb"
+        iconColor="#d97706"
+        label="Patents & IP"
+        value={formatValue(overview?.active_patents)}
+        valueColor={overview?.active_patents ? '#d97706' : undefined}
+        subtext={
+          overview?.active_patents !== null && overview?.active_patents !== undefined
             ? 'Disclosed & granted IP'
-            : 'Awaiting API connection'}
-        </span>
-      </div>
+            : 'Awaiting API connection'
+        }
+      />
     </div>
   );
 };

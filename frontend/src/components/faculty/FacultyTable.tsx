@@ -132,9 +132,9 @@ export const FacultyTable: React.FC<FacultyTableProps> = ({
   }
 
   return (
-    <div className="glass-panel" style={{ padding: 24 }}>
+    <div className="glass-panel" style={{ padding: 26 }}>
       {/* Controls: Search, Filters, Stats */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 22 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           {/* Search Box */}
           <div className="chat-input-box" style={{ width: 340 }}>
@@ -147,12 +147,12 @@ export const FacultyTable: React.FC<FacultyTableProps> = ({
               onChange={(e) => setSearch(e.target.value)}
             />
             {search && (
-              <button onClick={() => setSearch('')} style={{ fontSize: 11, color: '#94a3b8' }}>Clear</button>
+              <button onClick={() => setSearch('')} style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600 }}>Clear</button>
             )}
           </div>
 
           {/* Department Filter Tabs */}
-          <div style={{ display: 'flex', background: '#f1f5f9', padding: 3, borderRadius: 10 }}>
+          <div style={{ display: 'flex', background: '#f1f5f9', padding: 3, borderRadius: 10, border: '1px solid #e2e8f0' }}>
             {(['ALL', 'CSE', 'MECH', 'BIO', 'HSS'] as const).map((dept) => (
               <button
                 key={dept}
@@ -164,7 +164,8 @@ export const FacultyTable: React.FC<FacultyTableProps> = ({
                   fontWeight: deptFilter === dept ? 700 : 500,
                   background: deptFilter === dept ? '#fff' : 'transparent',
                   color: deptFilter === dept ? '#2563eb' : '#64748b',
-                  boxShadow: deptFilter === dept ? 'var(--shadow-sm)' : 'none'
+                  boxShadow: deptFilter === dept ? '0 1px 3px rgba(15, 23, 42, 0.08)' : 'none',
+                  transition: 'all 0.18s ease'
                 }}
               >
                 {dept}
@@ -180,12 +181,14 @@ export const FacultyTable: React.FC<FacultyTableProps> = ({
               onChange={(e) => setDesignationFilter(e.target.value as Designation | 'ALL')}
               style={{
                 padding: '7px 12px',
-                borderRadius: 8,
+                borderRadius: 9,
                 border: '1px solid #cbd5e1',
                 background: '#fff',
                 fontSize: 12.5,
                 color: '#334155',
-                outline: 'none'
+                outline: 'none',
+                boxShadow: 'var(--shadow-sm)',
+                transition: 'border-color 0.2s ease'
               }}
             >
               <option value="ALL">All Designations</option>
@@ -264,7 +267,7 @@ export const FacultyTable: React.FC<FacultyTableProps> = ({
                     </span>
                   </td>
                   <td>
-                    <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{fac.name}</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: 13.5 }}>{fac.name}</div>
                     <div style={{ fontSize: 11, color: '#64748b', fontFamily: 'var(--font-mono)' }}>{fac.employee_no}</div>
                   </td>
                   <td>
@@ -276,7 +279,7 @@ export const FacultyTable: React.FC<FacultyTableProps> = ({
                     </div>
                   </td>
                   <td>
-                    <div style={{ fontSize: 12.5, color: '#334155' }}>
+                    <div style={{ fontSize: 12.5, color: '#334155', fontWeight: 500 }}>
                       {fac.designation === 'ASSISTANT_PROFESSOR' ? 'Assistant Prof' :
                        fac.designation === 'ASSOCIATE_PROFESSOR' ? 'Associate Prof' : 'Professor'}
                     </div>
@@ -288,7 +291,7 @@ export const FacultyTable: React.FC<FacultyTableProps> = ({
                     <div style={{ fontWeight: 600, color: '#1e293b' }}>
                       {fac.raw_metrics?.total_pubs != null ? `${fac.raw_metrics.total_pubs} papers` : '—'}
                     </div>
-                    <div style={{ fontSize: 11, color: ((fac.raw_metrics?.q1_pubs ?? 0) + (fac.raw_metrics?.q2_pubs ?? 0)) > 0 ? '#059669' : '#dc2626' }}>
+                    <div style={{ fontSize: 11, color: ((fac.raw_metrics?.q1_pubs ?? 0) + (fac.raw_metrics?.q2_pubs ?? 0)) > 0 ? '#059669' : '#dc2626', fontWeight: 500 }}>
                       {fac.raw_metrics ? `${fac.raw_metrics.q1_pubs + fac.raw_metrics.q2_pubs} in Q1/Q2` : '—'}
                     </div>
                   </td>
@@ -321,12 +324,12 @@ export const FacultyTable: React.FC<FacultyTableProps> = ({
                       {fac.workload_context?.teaching_hours != null ? `${fac.workload_context.teaching_hours}h/wk teaching` : '—'}
                     </div>
                     {fac.workload_context && fac.workload_context.workload_variance_pct > 20 && (
-                      <span style={{ fontSize: 10, background: '#fef3c7', color: '#b45309', padding: '1px 5px', borderRadius: 4 }}>
+                      <span style={{ fontSize: 10, background: '#fef3c7', color: '#b45309', padding: '1px 5px', borderRadius: 4, fontWeight: 600 }}>
                         +{fac.workload_context.workload_variance_pct}% load
                       </span>
                     )}
                     {fac.workload_context && fac.workload_context.career_stage_multiplier > 1.0 && (
-                      <span style={{ fontSize: 10, background: '#dbeafe', color: '#1d4ed8', padding: '1px 5px', borderRadius: 4, marginLeft: 4 }}>
+                      <span style={{ fontSize: 10, background: '#dbeafe', color: '#1d4ed8', padding: '1px 5px', borderRadius: 4, marginLeft: 4, fontWeight: 600 }}>
                         {fac.workload_context.career_stage_multiplier}x startup
                       </span>
                     )}
@@ -343,7 +346,7 @@ export const FacultyTable: React.FC<FacultyTableProps> = ({
               ))
             ) : (
               <tr>
-                <td colSpan={11} style={{ textAlign: 'center', padding: 32, color: '#64748b' }}>
+                <td colSpan={11} style={{ textAlign: 'center', padding: 36, color: '#64748b' }}>
                   No faculty records match the selected filter.
                 </td>
               </tr>
@@ -354,4 +357,3 @@ export const FacultyTable: React.FC<FacultyTableProps> = ({
     </div>
   );
 };
-

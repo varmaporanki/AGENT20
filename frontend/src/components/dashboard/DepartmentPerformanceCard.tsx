@@ -1,12 +1,123 @@
 import React from 'react';
 import type { DepartmentInfo } from '../../services/types';
-import { ArrowUpRight, Scale, BookOpen, Lightbulb, IndianRupee, Database } from 'lucide-react';
+import { ArrowUpRight, Scale, BookOpen, Lightbulb, IndianRupee, Database, Building2 } from 'lucide-react';
+import { useCardTilt } from '../../utils/useCardTilt';
 
 interface DepartmentPerformanceCardProps {
   departments: DepartmentInfo[];
   loading?: boolean;
   onSelectDepartment: (code: string) => void;
 }
+
+interface SingleDeptCardProps {
+  dept: DepartmentInfo;
+  onSelectDepartment: (code: string) => void;
+  getDeptColorClass: (code: string) => string;
+  getBorderColor: (code: string) => string;
+}
+
+const SingleDeptCard: React.FC<SingleDeptCardProps> = ({
+  dept,
+  onSelectDepartment,
+  getDeptColorClass,
+  getBorderColor
+}) => {
+  const cardRef = useCardTilt<HTMLDivElement>({ maxTilt: 1.5, lift: -6, scale: 1.015 });
+  const borderColor = getBorderColor(dept.code);
+
+  return (
+    <div
+      ref={cardRef}
+      className="glass-panel tilt-card glass-card-interactive"
+      onClick={() => onSelectDepartment(dept.code)}
+      style={{
+        padding: 22,
+        borderTop: `4px solid ${borderColor}`,
+        position: 'relative',
+        overflow: 'hidden'
+      }}
+    >
+      <div className="specular-overlay" />
+      <div className="card-content-elevated">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+          <div>
+            <span className={`dept-tag ${getDeptColorClass(dept.code)}`}>{dept.code}</span>
+            <h3 style={{ fontSize: 15.5, marginTop: 8, color: 'var(--text-primary)', fontWeight: 700 }}>
+              {dept.name}
+            </h3>
+          </div>
+          <div
+            style={{
+              padding: 5,
+              borderRadius: 8,
+              background: 'rgba(248, 250, 252, 0.85)',
+              color: '#64748b',
+              border: '1px solid rgba(226, 232, 240, 0.8)',
+              transition: 'transform 0.2s ease, color 0.2s ease'
+            }}
+          >
+            <ArrowUpRight size={15} />
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 14 }}>
+          <span style={{ fontSize: 29, fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+            {dept.mean_score !== null ? dept.mean_score : '—'}
+          </span>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+            {dept.mean_score !== null ? 'mean score / 100' : 'Score unavailable'}
+          </span>
+        </div>
+
+        {/* Score Progress Bar with Luminous Fill */}
+        {dept.mean_score !== null && (
+          <div style={{ width: '100%', height: 6, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden', marginBottom: 16 }}>
+            <div
+              style={{
+                width: `${Math.min(100, Math.max(0, dept.mean_score))}%`,
+                height: '100%',
+                background: `linear-gradient(90deg, ${borderColor}, ${borderColor}dd)`,
+                borderRadius: 4,
+                boxShadow: `0 1px 6px ${borderColor}50`,
+                transition: 'width 0.5s ease'
+              }}
+            />
+          </div>
+        )}
+
+        {/* Pillar Metrics */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, fontSize: 11.5, color: '#475569', marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(248, 250, 252, 0.8)', padding: '5px 8px', borderRadius: 8, border: '1px solid rgba(226, 232, 240, 0.6)' }}>
+            <BookOpen size={12} color="#64748b" />
+            <span>{dept.total_pubs !== null && dept.total_pubs !== undefined ? `${dept.total_pubs} Pubs` : 'Pubs: —'}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(248, 250, 252, 0.8)', padding: '5px 8px', borderRadius: 8, border: '1px solid rgba(226, 232, 240, 0.6)' }}>
+            <IndianRupee size={12} color="#64748b" />
+            <span>{dept.total_funding_lakhs !== null && dept.total_funding_lakhs !== undefined ? `₹${dept.total_funding_lakhs}L` : 'Grants: —'}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(248, 250, 252, 0.8)', padding: '5px 8px', borderRadius: 8, border: '1px solid rgba(226, 232, 240, 0.6)' }}>
+            <Lightbulb size={12} color="#64748b" />
+            <span>{dept.patents_count !== null && dept.patents_count !== undefined ? `${dept.patents_count} Patents` : 'Patents: —'}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(248, 250, 252, 0.8)', padding: '5px 8px', borderRadius: 8, border: '1px solid rgba(226, 232, 240, 0.6)' }}>
+            <Scale size={12} color="#64748b" />
+            <span>{dept.faculty_count !== null && dept.faculty_count !== undefined ? `${dept.faculty_count} Faculty` : 'Faculty: —'}</span>
+          </div>
+        </div>
+
+        {/* Top Researcher */}
+        {dept.top_researcher && (
+          <div style={{ borderTop: '1px solid rgba(241, 245, 249, 0.85)', paddingTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
+            <span style={{ color: '#64748b' }}>Top: <strong style={{ color: '#0a192f' }}>{dept.top_researcher.name}</strong></span>
+            <span style={{ fontWeight: 800, color: borderColor, fontFamily: 'var(--font-display)', fontSize: 12 }}>
+              {dept.top_researcher.score ?? '—'}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export const DepartmentPerformanceCard: React.FC<DepartmentPerformanceCardProps> = ({
   departments,
@@ -34,116 +145,51 @@ export const DepartmentPerformanceCard: React.FC<DepartmentPerformanceCardProps>
   };
 
   return (
-    <div className="glass-panel" style={{ padding: 24, marginTop: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+    <div className="glass-panel" style={{ padding: 26, marginTop: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22 }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <span className="badge-pill" style={{ background: '#eff6ff', color: '#1d4ed8' }}>
-              Discipline Benchmarking
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <span className="badge-pill" style={{ background: '#eff6ff', color: '#1d4ed8', borderColor: '#bfdbfe' }}>
+              <Building2 size={12} />
+              <span>Discipline Benchmarking</span>
             </span>
             <span style={{ fontSize: 12, color: '#64748b' }}>
               Discipline-aware weights strictly sum to 100%
             </span>
           </div>
-          <h2 style={{ fontSize: 20, color: 'var(--text-primary)' }}>Department Performance</h2>
+          <h2 style={{ fontSize: 21, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+            Department Performance
+          </h2>
         </div>
       </div>
 
       {loading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>
-          <div className="pulse-dot" style={{ margin: '0 auto 12px', width: 8, height: 8 }} />
+        <div style={{ padding: 48, textAlign: 'center', color: '#64748b' }}>
+          <div className="pulse-dot" style={{ margin: '0 auto 12px', width: 9, height: 9 }} />
           <span>Fetching department performance data...</span>
         </div>
       ) : departments.length === 0 ? (
-        <div
-          style={{
-            padding: 36,
-            textAlign: 'center',
-            background: '#f8fafc',
-            borderRadius: 12,
-            border: '1px dashed #cbd5e1'
-          }}
-        >
-          <Database size={28} color="#94a3b8" style={{ margin: '0 auto 8px', display: 'block' }} />
+        <div className="empty-state-panel">
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', color: '#2563eb' }}>
+            <Database size={22} />
+          </div>
           <div style={{ fontSize: 14, fontWeight: 700, color: '#334155', marginBottom: 4 }}>
             Department Performance Records Unavailable
           </div>
-          <div style={{ fontSize: 12, color: '#64748b', maxWidth: 440, margin: '0 auto' }}>
-            Connect the research intelligence API service (<code style={{ fontFamily: 'var(--font-mono)' }}>GET /api/v1/departments</code>) to load department performance metrics.
+          <div style={{ fontSize: 12, color: '#64748b', maxWidth: 460, margin: '0 auto', lineHeight: 1.6 }}>
+            Connect the research intelligence API service (<code style={{ fontFamily: 'var(--font-mono)', background: '#fff', padding: '2px 6px', borderRadius: 4, border: '1px solid #e2e8f0' }}>GET /api/v1/departments</code>) to load department performance metrics.
           </div>
         </div>
       ) : (
         <div className="grid-4">
           {departments.map(dept => (
-            <div
+            <SingleDeptCard
               key={dept.code}
-              className="glass-panel glass-card-interactive"
-              onClick={() => onSelectDepartment(dept.code)}
-              style={{
-                padding: 20,
-                background: '#fff',
-                borderTop: `4px solid ${getBorderColor(dept.code)}`
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                <div>
-                  <span className={`dept-tag ${getDeptColorClass(dept.code)}`}>{dept.code}</span>
-                  <h3 style={{ fontSize: 15, marginTop: 6, color: 'var(--text-primary)' }}>{dept.name}</h3>
-                </div>
-                <ArrowUpRight size={16} color="#64748b" />
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 16 }}>
-                <span style={{ fontSize: 28, fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
-                  {dept.mean_score !== null ? dept.mean_score : '—'}
-                </span>
-                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                  {dept.mean_score !== null ? 'mean score / 100' : 'Score unavailable'}
-                </span>
-              </div>
-
-              {/* Score Progress Bar */}
-              {dept.mean_score !== null && (
-                <div style={{ width: '100%', height: 6, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden', marginBottom: 16 }}>
-                  <div
-                    style={{
-                      width: `${Math.min(100, Math.max(0, dept.mean_score))}%`,
-                      height: '100%',
-                      background: getBorderColor(dept.code),
-                      borderRadius: 4
-                    }}
-                  />
-                </div>
-              )}
-
-              {/* Pillar Metrics */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, fontSize: 11.5, color: '#475569', marginBottom: 14 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <BookOpen size={12} color="#64748b" />
-                  <span>{dept.total_pubs !== null && dept.total_pubs !== undefined ? `${dept.total_pubs} Pubs` : 'Pubs: —'}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <IndianRupee size={12} color="#64748b" />
-                  <span>{dept.total_funding_lakhs !== null && dept.total_funding_lakhs !== undefined ? `₹${dept.total_funding_lakhs}L` : 'Grants: —'}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Lightbulb size={12} color="#64748b" />
-                  <span>{dept.patents_count !== null && dept.patents_count !== undefined ? `${dept.patents_count} Patents` : 'Patents: —'}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Scale size={12} color="#64748b" />
-                  <span>{dept.faculty_count !== null && dept.faculty_count !== undefined ? `${dept.faculty_count} Faculty` : 'Faculty: —'}</span>
-                </div>
-              </div>
-
-              {/* Top Researcher */}
-              {dept.top_researcher && (
-                <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
-                  <span style={{ color: '#64748b' }}>Top: <strong style={{ color: '#0a192f' }}>{dept.top_researcher.name}</strong></span>
-                  <span style={{ fontWeight: 700, color: getBorderColor(dept.code) }}>{dept.top_researcher.score ?? '—'}</span>
-                </div>
-              )}
-            </div>
+              dept={dept}
+              onSelectDepartment={onSelectDepartment}
+              getDeptColorClass={getDeptColorClass}
+              getBorderColor={getBorderColor}
+            />
           ))}
         </div>
       )}

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as THREE from 'three';
 import type { FacultyMember, DepartmentInfo } from '../../services/types';
-import { Info, Eye } from 'lucide-react';
+import { Info, Eye, Sparkles } from 'lucide-react';
 
 interface HeroEcosystemProps {
   facultyList: FacultyMember[];
@@ -47,7 +47,6 @@ export const HeroEcosystem: React.FC<HeroEcosystemProps> = ({
     HSS: 0xf59e0b    // Amber/Gold
   }), []);
 
-
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
@@ -69,51 +68,169 @@ export const HeroEcosystem: React.FC<HeroEcosystemProps> = ({
     const height = container.clientHeight;
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
     container.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    // Subtle scientific fog
-    scene.fog = new THREE.FogExp2(0xf0f7ff, 0.015);
+    // Atmospheric scientific fog (distant objects gently fade into pale blue)
+    scene.fog = new THREE.FogExp2(0xf0f7ff, 0.012);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 0, 48);
+    // Camera closer to frame the 3D core prominently
+    camera.position.set(0, 0, 42);
 
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    // Multi-Layer Point & Directional Studio Lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.1);
     scene.add(ambientLight);
 
-    const pointLight = new THREE.PointLight(0x3b82f6, 1.5, 120);
-    pointLight.position.set(0, 10, 20);
+    // Dynamic primary specular point-light that tracks mouse
+    const pointLight = new THREE.PointLight(0x3b82f6, 3.2, 160);
+    pointLight.position.set(0, 14, 25);
     scene.add(pointLight);
 
-    const backLight = new THREE.DirectionalLight(0x93c5fd, 0.6);
-    backLight.position.set(0, -20, -10);
+    // Complementary soft azure fill light
+    const fillLight = new THREE.PointLight(0x93c5fd, 2.2, 120);
+    fillLight.position.set(-22, -12, 18);
+    scene.add(fillLight);
+
+    // Counter rim light for edge definition
+    const rimLight = new THREE.PointLight(0x60a5fa, 1.8, 100);
+    rimLight.position.set(22, 18, -10);
+    scene.add(rimLight);
+
+    // Directional backlight for volumetric sheen
+    const backLight = new THREE.DirectionalLight(0xbfdbfe, 0.9);
+    backLight.position.set(0, 25, 30);
     scene.add(backLight);
 
-    // 1. Central Institutional Research Core
+    // 1. Central Institutional Research Core (Visual Centerpiece: 6-tier multilayer 3D structure)
     const coreGroup = new THREE.Group();
-    const coreGeo = new THREE.IcosahedronGeometry(2.4, 1);
+    
+    // Layer 1A: Inner Concentrated Micro-Core Pulse
+    const innerPulseGeo = new THREE.SphereGeometry(1.2, 24, 24);
+    const innerPulseMat = new THREE.MeshBasicMaterial({
+      color: 0xbfdbfe,
+      transparent: true,
+      opacity: 0.85
+    });
+    const innerPulseMesh = new THREE.Mesh(innerPulseGeo, innerPulseMat);
+    coreGroup.add(innerPulseMesh);
+
+    // Layer 1B: Inner Glowing Plasma Sphere
+    const innerGlowGeo = new THREE.SphereGeometry(2.0, 32, 32);
+    const innerGlowMat = new THREE.MeshBasicMaterial({
+      color: 0x60a5fa,
+      transparent: true,
+      opacity: 0.52
+    });
+    const innerGlowMesh = new THREE.Mesh(innerGlowGeo, innerGlowMat);
+    coreGroup.add(innerGlowMesh);
+
+    // Layer 2: Faceted Deep Obsidian Icosahedron Core (Responds to light with specular gem reflections)
+    const coreGeo = new THREE.IcosahedronGeometry(3.1, 1);
     const coreMat = new THREE.MeshStandardMaterial({
-      color: 0x0a192f,
-      roughness: 0.2,
-      metalness: 0.8,
-      wireframe: false
+      color: 0x07152b,
+      roughness: 0.16,
+      metalness: 0.90,
+      emissive: 0x1d4ed8,
+      emissiveIntensity: 0.40,
+      flatShading: true
     });
     const coreMesh = new THREE.Mesh(coreGeo, coreMat);
     coreGroup.add(coreMesh);
 
-    // Outer wireframe ring around core
-    const wireGeo = new THREE.IcosahedronGeometry(2.9, 1);
+    // Layer 3: Counter-Rotating Geodesic Wireframe Shell
+    const wireGeo = new THREE.IcosahedronGeometry(4.15, 1);
     const wireMat = new THREE.MeshBasicMaterial({
       color: 0x3b82f6,
       wireframe: true,
       transparent: true,
-      opacity: 0.35
+      opacity: 0.52
     });
     const wireMesh = new THREE.Mesh(wireGeo, wireMat);
     coreGroup.add(wireMesh);
 
+    // Layer 4A: Concentric Equator Ring 1 (Tilted axis)
+    const equatorGeo1 = new THREE.TorusGeometry(5.1, 0.042, 16, 120);
+    const equatorMat1 = new THREE.MeshBasicMaterial({
+      color: 0x60a5fa,
+      transparent: true,
+      opacity: 0.65
+    });
+    const equatorMesh1 = new THREE.Mesh(equatorGeo1, equatorMat1);
+    equatorMesh1.rotation.x = Math.PI / 2.35;
+    coreGroup.add(equatorMesh1);
+
+    // Layer 4B: Concentric Equator Ring 2 (Opposite tilt)
+    const equatorGeo2 = new THREE.TorusGeometry(6.2, 0.032, 16, 120);
+    const equatorMat2 = new THREE.MeshBasicMaterial({
+      color: 0x93c5fd,
+      transparent: true,
+      opacity: 0.50
+    });
+    const equatorMesh2 = new THREE.Mesh(equatorGeo2, equatorMat2);
+    equatorMesh2.rotation.x = -Math.PI / 3.1;
+    equatorMesh2.rotation.z = Math.PI / 5.5;
+    coreGroup.add(equatorMesh2);
+
+    // Layer 4C: Concentric Equator Ring 3 (Interlocking coordinate orbit)
+    const equatorGeo3 = new THREE.TorusGeometry(7.3, 0.024, 16, 120);
+    const equatorMat3 = new THREE.MeshBasicMaterial({
+      color: 0x3b82f6,
+      transparent: true,
+      opacity: 0.38
+    });
+    const equatorMesh3 = new THREE.Mesh(equatorGeo3, equatorMat3);
+    equatorMesh3.rotation.y = Math.PI / 3.8;
+    equatorMesh3.rotation.x = Math.PI / 6;
+    coreGroup.add(equatorMesh3);
+
+    // Layer 5: Outer Energy Field Halo
+    const outerHaloGeo = new THREE.TorusGeometry(8.5, 0.018, 16, 120);
+    const outerHaloMat = new THREE.MeshBasicMaterial({
+      color: 0x2563eb,
+      transparent: true,
+      opacity: 0.28
+    });
+    const outerHaloMesh = new THREE.Mesh(outerHaloGeo, outerHaloMat);
+    outerHaloMesh.rotation.y = Math.PI / 4;
+    coreGroup.add(outerHaloMesh);
+
     scene.add(coreGroup);
+
+    // Global Orbital Latitude Rings (Expansive scientific coordinate lines)
+    const orbitalRingGeo1 = new THREE.TorusGeometry(22, 0.036, 16, 140);
+    const orbitalRingMat1 = new THREE.MeshBasicMaterial({
+      color: 0x3b82f6,
+      transparent: true,
+      opacity: 0.30
+    });
+    const orbitalRing1 = new THREE.Mesh(orbitalRingGeo1, orbitalRingMat1);
+    orbitalRing1.rotation.x = Math.PI / 3.2;
+    orbitalRing1.rotation.y = Math.PI / 8;
+    scene.add(orbitalRing1);
+
+    const orbitalRingGeo2 = new THREE.TorusGeometry(30, 0.026, 16, 140);
+    const orbitalRingMat2 = new THREE.MeshBasicMaterial({
+      color: 0x93c5fd,
+      transparent: true,
+      opacity: 0.22
+    });
+    const orbitalRing2 = new THREE.Mesh(orbitalRingGeo2, orbitalRingMat2);
+    orbitalRing2.rotation.x = -Math.PI / 3.8;
+    orbitalRing2.rotation.y = -Math.PI / 5.5;
+    scene.add(orbitalRing2);
+
+    const orbitalRingGeo3 = new THREE.TorusGeometry(38, 0.018, 16, 140);
+    const orbitalRingMat3 = new THREE.MeshBasicMaterial({
+      color: 0x60a5fa,
+      transparent: true,
+      opacity: 0.16
+    });
+    const orbitalRing3 = new THREE.Mesh(orbitalRingGeo3, orbitalRingMat3);
+    orbitalRing3.rotation.z = Math.PI / 4.2;
+    scene.add(orbitalRing3);
 
     // 2. Department Clusters & Faculty Nodes (When Real Data Exists)
     // OR Abstract Research Network (When Real Data Is Unavailable)
@@ -121,6 +238,7 @@ export const HeroEcosystem: React.FC<HeroEcosystemProps> = ({
     const deptMeshMap = new Map<string, THREE.Mesh>();
     const facultyMeshMap = new Map<string, THREE.Mesh>();
     const abstractMeshes: THREE.Object3D[] = [];
+    const filamentLines: THREE.Line[] = [];
 
     const hasRealData = departments.length > 0 || facultyList.length > 0;
 
@@ -130,13 +248,13 @@ export const HeroEcosystem: React.FC<HeroEcosystemProps> = ({
         const color = deptColors[dept.code] || 0x2563eb;
 
         // Department Hub Sphere
-        const deptGeo = new THREE.SphereGeometry(2.0, 32, 32);
+        const deptGeo = new THREE.SphereGeometry(2.1, 36, 36);
         const deptMat = new THREE.MeshStandardMaterial({
           color: color,
-          roughness: 0.3,
-          metalness: 0.4,
+          roughness: 0.25,
+          metalness: 0.45,
           emissive: color,
-          emissiveIntensity: 0.2
+          emissiveIntensity: 0.25
         });
         const deptMesh = new THREE.Mesh(deptGeo, deptMat);
         deptMesh.position.copy(pos);
@@ -146,11 +264,25 @@ export const HeroEcosystem: React.FC<HeroEcosystemProps> = ({
           name: dept.name,
           score: dept.mean_score,
           facultyCount: dept.faculty_count,
-          q1Pct: dept.q1_percentage
+          q1Pct: dept.q1_percentage,
+          baseScale: 1.0,
+          targetScale: 1.0
         };
         scene.add(deptMesh);
         interactiveObjects.push(deptMesh);
         deptMeshMap.set(dept.code, deptMesh);
+
+        // Thin Halo Ring around Department Hub
+        const hubRingGeo = new THREE.TorusGeometry(2.7, 0.02, 16, 60);
+        const hubRingMat = new THREE.MeshBasicMaterial({
+          color: color,
+          transparent: true,
+          opacity: 0.35
+        });
+        const hubRing = new THREE.Mesh(hubRingGeo, hubRingMat);
+        hubRing.position.copy(pos);
+        hubRing.rotation.x = Math.PI / 2;
+        scene.add(hubRing);
 
         // Line connecting Core to Department
         const lineGeo = new THREE.BufferGeometry().setFromPoints([
@@ -160,10 +292,11 @@ export const HeroEcosystem: React.FC<HeroEcosystemProps> = ({
         const lineMat = new THREE.LineBasicMaterial({
           color: color,
           transparent: true,
-          opacity: 0.25
+          opacity: 0.28
         });
         const line = new THREE.Line(lineGeo, lineMat);
         scene.add(line);
+        filamentLines.push(line);
       });
 
       // Add Faculty Nodes surrounding their respective department hub
@@ -182,14 +315,14 @@ export const HeroEcosystem: React.FC<HeroEcosystemProps> = ({
 
         // Node size scaled by actual final score
         const scoreVal = fac.final_score !== null && fac.final_score !== undefined ? fac.final_score : 0;
-        const radiusSize = 0.4 + (scoreVal / 100) * 0.65;
-        const facGeo = new THREE.SphereGeometry(radiusSize, 24, 24);
+        const radiusSize = 0.42 + (scoreVal / 100) * 0.68;
+        const facGeo = new THREE.SphereGeometry(radiusSize, 28, 28);
         const facMat = new THREE.MeshStandardMaterial({
           color: color,
-          roughness: 0.35,
-          metalness: 0.3,
+          roughness: 0.3,
+          metalness: 0.35,
           emissive: color,
-          emissiveIntensity: scoreVal > 70 ? 0.35 : 0.1
+          emissiveIntensity: scoreVal > 70 ? 0.38 : 0.12
         });
 
         const facMesh = new THREE.Mesh(facGeo, facMat);
@@ -204,7 +337,9 @@ export const HeroEcosystem: React.FC<HeroEcosystemProps> = ({
           rank: fac.rank_institution,
           deptRank: fac.rank_within_department,
           pubs: fac.raw_metrics?.total_pubs ?? null,
-          citations: fac.raw_metrics?.cits_latest ?? null
+          citations: fac.raw_metrics?.cits_latest ?? null,
+          baseScale: 1.0,
+          targetScale: 1.0
         };
 
         scene.add(facMesh);
@@ -219,37 +354,35 @@ export const HeroEcosystem: React.FC<HeroEcosystemProps> = ({
         const facLineMat = new THREE.LineBasicMaterial({
           color: color,
           transparent: true,
-          opacity: 0.18
+          opacity: 0.2
         });
         const facLine = new THREE.Line(facLineGeo, facLineMat);
         scene.add(facLine);
+        filamentLines.push(facLine);
       });
     } else {
-      // Neutral scientific/institutional WebGL environment (no fake faculty or department claims)
-      const neutralRingGeo = new THREE.TorusGeometry(12, 0.05, 16, 120);
-      const neutralRingMat = new THREE.MeshBasicMaterial({
-        color: 0x3b82f6,
-        transparent: true,
-        opacity: 0.3
-      });
-      const neutralRing = new THREE.Mesh(neutralRingGeo, neutralRingMat);
-      neutralRing.rotation.x = Math.PI / 3;
-      scene.add(neutralRing);
-      abstractMeshes.push(neutralRing);
+      // Sophisticated Neutral Academic Gyroscope (No fake faculty or department identities)
+      const ringConfig = [
+        { radius: 12.5, tube: 0.045, rotX: Math.PI / 3, rotY: 0, color: 0x2563eb, op: 0.35 },
+        { radius: 17.5, tube: 0.038, rotX: -Math.PI / 4, rotY: Math.PI / 5, color: 0x3b82f6, op: 0.28 },
+        { radius: 22.0, tube: 0.032, rotX: Math.PI / 6, rotY: -Math.PI / 3, color: 0x60a5fa, op: 0.2 }
+      ];
 
-      const secondRingGeo = new THREE.TorusGeometry(17, 0.04, 16, 120);
-      const secondRingMat = new THREE.MeshBasicMaterial({
-        color: 0x60a5fa,
-        transparent: true,
-        opacity: 0.2
+      ringConfig.forEach(cfg => {
+        const ringGeo = new THREE.TorusGeometry(cfg.radius, cfg.tube, 16, 120);
+        const ringMat = new THREE.MeshBasicMaterial({
+          color: cfg.color,
+          transparent: true,
+          opacity: cfg.op
+        });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = cfg.rotX;
+        ring.rotation.y = cfg.rotY;
+        scene.add(ring);
+        abstractMeshes.push(ring);
       });
-      const secondRing = new THREE.Mesh(secondRingGeo, secondRingMat);
-      secondRing.rotation.y = Math.PI / 4;
-      secondRing.rotation.x = -Math.PI / 5;
-      scene.add(secondRing);
-      abstractMeshes.push(secondRing);
 
-      // Abstract geometric placeholder nodes (no faculty/department identities)
+      // Abstract geometric coordinate nodes
       const neutralNodePositions = [
         new THREE.Vector3(-14, 6, 0),
         new THREE.Vector3(14, 7, -2),
@@ -260,19 +393,33 @@ export const HeroEcosystem: React.FC<HeroEcosystemProps> = ({
       ];
 
       neutralNodePositions.forEach(pos => {
-        const nodeGeo = new THREE.OctahedronGeometry(1.2, 0);
+        const nodeGroup = new THREE.Group();
+        nodeGroup.position.copy(pos);
+
+        const nodeGeo = new THREE.OctahedronGeometry(1.3, 0);
         const nodeMat = new THREE.MeshStandardMaterial({
           color: 0x93c5fd,
-          roughness: 0.4,
-          metalness: 0.6,
+          roughness: 0.3,
+          metalness: 0.7,
           wireframe: true
         });
         const nodeMesh = new THREE.Mesh(nodeGeo, nodeMat);
-        nodeMesh.position.copy(pos);
-        scene.add(nodeMesh);
-        abstractMeshes.push(nodeMesh);
+        nodeGroup.add(nodeMesh);
 
-        // Filament connecting to core
+        // Center dot
+        const dotGeo = new THREE.SphereGeometry(0.35, 16, 16);
+        const dotMat = new THREE.MeshBasicMaterial({
+          color: 0x3b82f6,
+          transparent: true,
+          opacity: 0.8
+        });
+        const dotMesh = new THREE.Mesh(dotGeo, dotMat);
+        nodeGroup.add(dotMesh);
+
+        scene.add(nodeGroup);
+        abstractMeshes.push(nodeGroup);
+
+        // Delicate filament connecting to core
         const filamentGeo = new THREE.BufferGeometry().setFromPoints([
           new THREE.Vector3(0, 0, 0),
           pos
@@ -280,7 +427,7 @@ export const HeroEcosystem: React.FC<HeroEcosystemProps> = ({
         const filamentMat = new THREE.LineBasicMaterial({
           color: 0x93c5fd,
           transparent: true,
-          opacity: 0.15
+          opacity: 0.2
         });
         const filament = new THREE.Line(filamentGeo, filamentMat);
         scene.add(filament);
@@ -288,33 +435,78 @@ export const HeroEcosystem: React.FC<HeroEcosystemProps> = ({
       });
     }
 
-    // 3. Ambient Particle Field (Scientific Star Field)
-    const particleCount = 280;
-    const particleGeo = new THREE.BufferGeometry();
-    const particlePos = new Float32Array(particleCount * 3);
-    for (let i = 0; i < particleCount * 3; i += 3) {
-      // Deterministic particle distribution (pseudo-random trigonometric hash)
-      const seedX = Math.sin((i + 1) * 12.9898) * 43758.5453;
-      const seedY = Math.sin((i + 2) * 78.233) * 43758.5453;
-      const seedZ = Math.sin((i + 3) * 45.164) * 43758.5453;
-      particlePos[i] = ((seedX - Math.floor(seedX)) - 0.5) * 80;
-      particlePos[i + 1] = ((seedY - Math.floor(seedY)) - 0.5) * 50;
-      particlePos[i + 2] = ((seedZ - Math.floor(seedZ)) - 0.5) * 40;
+    // 3. True 3D Depth Particle Planes (Deterministic trigonometric hash — strictly NO Math.random)
+    // Foreground plane: large, close to camera, passing near viewer
+    const fgCount = 48;
+    const fgGeo = new THREE.BufferGeometry();
+    const fgPos = new Float32Array(fgCount * 3);
+    for (let i = 0; i < fgCount * 3; i += 3) {
+      const sx = Math.sin((i + 1) * 17.182) * 43758.5453;
+      const sy = Math.sin((i + 2) * 23.456) * 43758.5453;
+      const sz = Math.sin((i + 3) * 31.789) * 43758.5453;
+      fgPos[i] = ((sx - Math.floor(sx)) - 0.5) * 65;
+      fgPos[i + 1] = ((sy - Math.floor(sy)) - 0.5) * 38;
+      fgPos[i + 2] = 14 + (sz - Math.floor(sz)) * 20; // z: 14 to 34 (passes in foreground of camera at z:42)
     }
-    particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
-    const particleMat = new THREE.PointsMaterial({
-      color: 0x93c5fd,
-      size: 0.5,
+    fgGeo.setAttribute('position', new THREE.BufferAttribute(fgPos, 3));
+    const fgMat = new THREE.PointsMaterial({
+      color: 0xdbeafe,
+      size: 1.8,
       transparent: true,
-      opacity: 0.45
+      opacity: 0.78
     });
-    const particles = new THREE.Points(particleGeo, particleMat);
-    scene.add(particles);
+    const fgParticles = new THREE.Points(fgGeo, fgMat);
+    scene.add(fgParticles);
+
+    // Midground plane: interactive focus region
+    const mgCount = 220;
+    const mgGeo = new THREE.BufferGeometry();
+    const mgPos = new Float32Array(mgCount * 3);
+    for (let i = 0; i < mgCount * 3; i += 3) {
+      const sx = Math.sin((i + 1) * 12.9898) * 43758.5453;
+      const sy = Math.sin((i + 2) * 78.233) * 43758.5453;
+      const sz = Math.sin((i + 3) * 45.164) * 43758.5453;
+      mgPos[i] = ((sx - Math.floor(sx)) - 0.5) * 88;
+      mgPos[i + 1] = ((sy - Math.floor(sy)) - 0.5) * 54;
+      mgPos[i + 2] = -8 + (sz - Math.floor(sz)) * 24; // z: -8 to 16
+    }
+    mgGeo.setAttribute('position', new THREE.BufferAttribute(mgPos, 3));
+    const mgMat = new THREE.PointsMaterial({
+      color: 0x93c5fd,
+      size: 0.85,
+      transparent: true,
+      opacity: 0.52
+    });
+    const mgParticles = new THREE.Points(mgGeo, mgMat);
+    scene.add(mgParticles);
+
+    // Background star field: distant deep universe
+    const bgCount = 400;
+    const bgGeo = new THREE.BufferGeometry();
+    const bgPos = new Float32Array(bgCount * 3);
+    for (let i = 0; i < bgCount * 3; i += 3) {
+      const sx = Math.sin((i + 1) * 53.123) * 43758.5453;
+      const sy = Math.sin((i + 2) * 91.827) * 43758.5453;
+      const sz = Math.sin((i + 3) * 64.391) * 43758.5453;
+      bgPos[i] = ((sx - Math.floor(sx)) - 0.5) * 115;
+      bgPos[i + 1] = ((sy - Math.floor(sy)) - 0.5) * 75;
+      bgPos[i + 2] = -55 + (sz - Math.floor(sz)) * 40; // z: -55 to -15
+    }
+    bgGeo.setAttribute('position', new THREE.BufferAttribute(bgPos, 3));
+    const bgMat = new THREE.PointsMaterial({
+      color: 0x60a5fa,
+      size: 0.42,
+      transparent: true,
+      opacity: 0.35
+    });
+    const bgParticles = new THREE.Points(bgGeo, bgMat);
+    scene.add(bgParticles);
 
     // Raycasting & Mouse Parallax
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2(-100, -100);
-    const targetCameraPos = new THREE.Vector3(0, 0, 48);
+    const targetCameraPos = new THREE.Vector3(0, 0, 42);
+    let currentlyHoveredObject: THREE.Object3D | null = null;
 
     const onPointerMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect();
@@ -323,20 +515,45 @@ export const HeroEcosystem: React.FC<HeroEcosystemProps> = ({
       mouse.x = x;
       mouse.y = y;
 
-      // Subtle parallax camera target
-      targetCameraPos.x = x * 2.5;
-      targetCameraPos.y = y * 1.8;
+      // Noticeable and clearly perceptible parallax shift (controlled with smooth damping)
+      targetCameraPos.x = x * 7.5;
+      targetCameraPos.y = y * 5.0;
+
+      // Dynamic specular light tracking following mouse position across the 3D core
+      pointLight.position.x = x * 18;
+      pointLight.position.y = 14 + y * 12;
+      pointLight.position.z = 25 + Math.abs(x) * 6;
+
+      // Fill light responds counter to create dynamic relief lighting
+      fillLight.position.x = -22 - x * 8;
+      fillLight.position.y = -12 - y * 6;
 
       // Raycast for hover
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObjects(interactiveObjects);
 
       if (intersects.length > 0) {
-        const hit = intersects[0].object;
+        const hit = intersects[0].object as THREE.Mesh;
         const data = hit.userData;
 
+        if (currentlyHoveredObject && currentlyHoveredObject !== hit) {
+          currentlyHoveredObject.userData.targetScale = 1.0;
+          const prevMat = (currentlyHoveredObject as THREE.Mesh).material;
+          if (prevMat && 'emissiveIntensity' in prevMat) {
+            (prevMat as any).emissiveIntensity = currentlyHoveredObject.userData.baseEmissive || 0.25;
+          }
+        }
+        currentlyHoveredObject = hit;
+        hit.userData.targetScale = 1.32;
+        if (!hit.userData.baseEmissive && hit.material && 'emissiveIntensity' in hit.material) {
+          hit.userData.baseEmissive = (hit.material as any).emissiveIntensity;
+        }
+        if (hit.material && 'emissiveIntensity' in hit.material) {
+          (hit.material as any).emissiveIntensity = 0.85; // Visibly brighten node on hover!
+        }
+
         // Position tooltip
-        const screenX = e.clientX - rect.left;
+        const screenX = Math.min(Math.max(e.clientX - rect.left, 130), rect.width - 130);
         const screenY = e.clientY - rect.top;
 
         if (data.type === 'faculty') {
@@ -367,6 +584,14 @@ export const HeroEcosystem: React.FC<HeroEcosystemProps> = ({
           container.style.cursor = 'pointer';
         }
       } else {
+        if (currentlyHoveredObject) {
+          currentlyHoveredObject.userData.targetScale = 1.0;
+          const prevMat = (currentlyHoveredObject as THREE.Mesh).material;
+          if (prevMat && 'emissiveIntensity' in prevMat) {
+            (prevMat as any).emissiveIntensity = currentlyHoveredObject.userData.baseEmissive || 0.25;
+          }
+          currentlyHoveredObject = null;
+        }
         setTooltip(null);
         setHoveredDept(null);
         container.style.cursor = 'default';
@@ -392,38 +617,65 @@ export const HeroEcosystem: React.FC<HeroEcosystemProps> = ({
 
     // Animation Loop
     let animationFrameId: number;
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
 
-      // Smooth camera lerp (Parallax)
-      camera.position.lerp(targetCameraPos, 0.04);
-      camera.lookAt(0, 0, 0);
+      // Smooth camera lerp (Controlled Parallax)
+      camera.position.lerp(targetCameraPos, 0.048);
+      camera.lookAt(targetCameraPos.x * 0.12, targetCameraPos.y * 0.12, 0);
 
-      // Slow institutional core rotation
+      // Core rotation with subtle oscillation (Multi-frequency movements)
       coreGroup.rotation.y = elapsedTime * 0.08;
-      coreGroup.rotation.x = Math.sin(elapsedTime * 0.05) * 0.08;
+      coreGroup.rotation.x = Math.sin(elapsedTime * 0.06) * 0.08;
+      wireMesh.rotation.y = -elapsedTime * 0.12;
+      wireMesh.rotation.z = Math.cos(elapsedTime * 0.08) * 0.07;
+      equatorMesh1.rotation.z = -elapsedTime * 0.15;
+      equatorMesh2.rotation.z = elapsedTime * 0.12;
+      equatorMesh3.rotation.x = elapsedTime * 0.09;
+      outerHaloMesh.rotation.x = elapsedTime * 0.05;
 
-      // Slow orbital breath on particles
-      particles.rotation.y = -elapsedTime * 0.015;
+      // Pulse core, micro-core and inner glow
+      innerPulseMesh.scale.setScalar(1.0 + Math.sin(elapsedTime * 2.4) * 0.08);
+      innerGlowMat.opacity = 0.45 + Math.sin(elapsedTime * 2.0) * 0.16;
+      coreMat.emissiveIntensity = 0.36 + Math.sin(elapsedTime * 1.5) * 0.12;
+      pointLight.intensity = 3.0 + Math.sin(elapsedTime * 1.6) * 0.6;
 
-      // Rotate neutral abstract geometry if present
-      abstractMeshes.forEach((mesh, i) => {
-        if (mesh instanceof THREE.Mesh && mesh.geometry instanceof THREE.TorusGeometry) {
-          mesh.rotation.z = elapsedTime * (0.02 * (i + 1));
-        } else if (mesh instanceof THREE.Mesh) {
-          mesh.rotation.y = elapsedTime * 0.2;
+      // Rotate Global Orbital Rings at different speeds
+      orbitalRing1.rotation.z = elapsedTime * 0.028;
+      orbitalRing2.rotation.z = -elapsedTime * 0.020;
+      orbitalRing3.rotation.z = elapsedTime * 0.015;
+
+      // Multi-plane parallax particle rotation & slow depth drift
+      fgParticles.rotation.y = elapsedTime * 0.024;
+      fgParticles.rotation.x = Math.sin(elapsedTime * 0.04) * 0.04;
+      mgParticles.rotation.y = -elapsedTime * 0.015;
+      bgParticles.rotation.y = elapsedTime * 0.007;
+
+      // Rotate neutral abstract geometry if in unconnected mode
+      abstractMeshes.forEach((item, i) => {
+        if (item instanceof THREE.Mesh && item.geometry instanceof THREE.TorusGeometry) {
+          item.rotation.z = elapsedTime * (0.02 * (i + 1));
+        } else if (item instanceof THREE.Group) {
+          item.rotation.y = elapsedTime * 0.25;
+          item.rotation.x = Math.sin(elapsedTime * 0.4 + i) * 0.18;
         }
       });
 
-      // Very subtle organic floating on department hubs
+      // Smooth interactive scaling interpolation on hover
+      interactiveObjects.forEach(obj => {
+        const target = obj.userData.targetScale || 1.0;
+        obj.scale.lerp(new THREE.Vector3(target, target, target), 0.12);
+      });
+
+      // Subtle organic floating on department hubs
       departments.forEach(d => {
         const mesh = deptMeshMap.get(d.code);
         if (mesh) {
           const originalPos = deptPositions[d.code] || new THREE.Vector3(0, 0, 0);
-          mesh.position.y = originalPos.y + Math.sin(elapsedTime * 0.8 + mesh.position.x) * 0.18;
+          mesh.position.y = originalPos.y + Math.sin(elapsedTime * 0.75 + mesh.position.x) * 0.18;
         }
       });
 
@@ -453,12 +705,34 @@ export const HeroEcosystem: React.FC<HeroEcosystemProps> = ({
 
       // Dispose Three.js resources
       renderer.dispose();
+      innerPulseGeo.dispose();
+      innerPulseMat.dispose();
+      innerGlowGeo.dispose();
+      innerGlowMat.dispose();
       coreGeo.dispose();
       coreMat.dispose();
       wireGeo.dispose();
       wireMat.dispose();
-      particleGeo.dispose();
-      particleMat.dispose();
+      equatorGeo1.dispose();
+      equatorMat1.dispose();
+      equatorGeo2.dispose();
+      equatorMat2.dispose();
+      equatorGeo3.dispose();
+      equatorMat3.dispose();
+      outerHaloGeo.dispose();
+      outerHaloMat.dispose();
+      orbitalRingGeo1.dispose();
+      orbitalRingMat1.dispose();
+      orbitalRingGeo2.dispose();
+      orbitalRingMat2.dispose();
+      orbitalRingGeo3.dispose();
+      orbitalRingMat3.dispose();
+      fgGeo.dispose();
+      fgMat.dispose();
+      mgGeo.dispose();
+      mgMat.dispose();
+      bgGeo.dispose();
+      bgMat.dispose();
 
       [...interactiveObjects, ...abstractMeshes].forEach(obj => {
         if (obj instanceof THREE.Mesh) {
@@ -528,37 +802,43 @@ export const HeroEcosystem: React.FC<HeroEcosystemProps> = ({
               : 'Connect the research data service to explore institutional analytics.'}
           </p>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontSize: 11.5, color: '#475569', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Eye size={13} color="#2563eb" />
-              {hasRealData
-                ? 'Hover nodes to inspect • Click to open dossier'
-                : 'Institutional Core Active • Awaiting API connection'}
+            <span style={{ fontSize: 11.5, color: '#475569', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 500 }}>
+              {hasRealData ? (
+                <>
+                  <Eye size={13} color="#2563eb" />
+                  <span>Hover nodes to inspect • Click to open dossier</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles size={13} color="#2563eb" />
+                  <span>Institutional Core Active • Awaiting API connection</span>
+                </>
+              )}
             </span>
           </div>
         </div>
 
-        {/* Floating Tooltip in WebGL Canvas */}
+        {/* Floating Tooltip in WebGL Canvas - Frosted Glass HUD */}
         {tooltip && (
           <div
             className="webgl-tooltip"
             style={{
-              left: Math.min(Math.max(tooltip.x, 120), (mountRef.current?.clientWidth || 800) - 120),
+              left: tooltip.x,
               top: tooltip.y
             }}
           >
             <div className="tooltip-title">{tooltip.title}</div>
-            <div style={{ fontSize: 11, color: '#cbd5e1', marginBottom: 4 }}>{tooltip.subtitle}</div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
+            <div style={{ fontSize: 11, color: '#cbd5e1', marginBottom: 6 }}>{tooltip.subtitle}</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
               <span className="tooltip-stat">{tooltip.statA}</span>
-              <span style={{ fontWeight: 800, color: '#60a5fa', fontSize: 14 }}>
+              <span style={{ fontWeight: 800, color: '#60a5fa', fontSize: 14, fontFamily: 'var(--font-display)' }}>
                 {tooltip.score != null ? `${tooltip.score} / 100` : 'Score unavailable'}
               </span>
             </div>
-            <div className="tooltip-stat" style={{ marginTop: 2 }}>{tooltip.statB}</div>
+            <div className="tooltip-stat" style={{ marginTop: 3 }}>{tooltip.statB}</div>
           </div>
         )}
       </div>
     </div>
   );
 };
-

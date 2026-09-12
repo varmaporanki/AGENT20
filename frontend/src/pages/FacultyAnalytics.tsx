@@ -38,6 +38,16 @@ export const FacultyAnalytics: React.FC<FacultyAnalyticsProps> = ({
     loadData();
   }, []);
 
+  const getBorderColor = (code: string) => {
+    switch (code.toUpperCase()) {
+      case 'CSE': return '#2563eb';
+      case 'MECH': return '#0d9488';
+      case 'BIO': return '#16a34a';
+      case 'HSS': return '#d97706';
+      default: return '#2563eb';
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ padding: 60, textAlign: 'center', color: '#64748b' }}>
@@ -55,14 +65,15 @@ export const FacultyAnalytics: React.FC<FacultyAnalyticsProps> = ({
           style={{
             background: '#fffbeb',
             border: '1px solid #fde68a',
-            borderRadius: 10,
-            padding: '12px 18px',
-            marginBottom: 16,
+            borderRadius: 12,
+            padding: '14px 20px',
+            marginBottom: 20,
             display: 'flex',
             alignItems: 'center',
             gap: 12,
             fontSize: 13,
-            color: '#92400e'
+            color: '#92400e',
+            boxShadow: 'var(--shadow-sm)'
           }}
         >
           <WifiOff size={16} color="#d97706" />
@@ -74,14 +85,14 @@ export const FacultyAnalytics: React.FC<FacultyAnalyticsProps> = ({
 
       {/* Page Header */}
       <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 6 }} className="badge-pill">
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 8, background: '#eff6ff', borderColor: '#bfdbfe' }} className="badge-pill">
           <Users size={12} color="#2563eb" />
-          <span>INSTITUTIONAL DIRECTORY</span>
+          <span style={{ color: '#2563eb', fontWeight: 700 }}>INSTITUTIONAL DIRECTORY</span>
         </div>
-        <h1 style={{ fontSize: 26, color: 'var(--text-primary)', marginBottom: 6 }}>
+        <h1 style={{ fontSize: 27, color: 'var(--text-primary)', marginBottom: 8, letterSpacing: '-0.02em' }}>
           Faculty Productivity & Benchmarking
         </h1>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)', maxWidth: 780 }}>
+        <p style={{ fontSize: 14, color: 'var(--text-secondary)', maxWidth: 800, lineHeight: 1.6 }}>
           Multi-attribute performance tracking across departments. Filter by department, designation, or rank to evaluate research velocity and journal quality metrics directly from verified PostgreSQL scoring.
         </p>
       </div>
@@ -99,11 +110,12 @@ export const FacultyAnalytics: React.FC<FacultyAnalyticsProps> = ({
                 key={dept.code}
                 className="glass-panel"
                 style={{
-                  padding: 16,
+                  padding: 18,
                   background: '#fff',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 8
+                  gap: 10,
+                  borderTop: `3px solid ${getBorderColor(dept.code)}`
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -114,15 +126,15 @@ export const FacultyAnalytics: React.FC<FacultyAnalyticsProps> = ({
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: '#0a192f' }}>
+                  <span style={{ fontSize: 22, fontWeight: 800, color: '#0a192f', fontFamily: 'var(--font-display)' }}>
                     {dept.mean_score != null ? dept.mean_score.toFixed(1) : '—'}
                   </span>
-                  <span style={{ fontSize: 11, color: '#059669', fontWeight: 600 }}>
+                  <span style={{ fontSize: 11, color: '#059669', fontWeight: 700 }}>
                     Top: {dept.top_score != null ? dept.top_score.toFixed(1) : '—'}
                   </span>
                 </div>
 
-                <div style={{ fontSize: 11, color: '#64748b', borderTop: '1px solid #f1f5f9', paddingTop: 6 }}>
+                <div style={{ fontSize: 11, color: '#64748b', borderTop: '1px solid #f1f5f9', paddingTop: 8 }}>
                   Leader: <strong style={{ color: '#0a192f' }}>{topInDept ? topInDept.name : (dept.top_researcher?.name || '—')}</strong>
                 </div>
               </div>
@@ -140,4 +152,3 @@ export const FacultyAnalytics: React.FC<FacultyAnalyticsProps> = ({
     </div>
   );
 };
-

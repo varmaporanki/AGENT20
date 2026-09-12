@@ -35,6 +35,16 @@ export const Departments: React.FC<DepartmentsProps> = ({ onSelectFaculty }) => 
     loadFaculty();
   }, [selectedDept]);
 
+  const getBorderColor = (code: string) => {
+    switch (code.toUpperCase()) {
+      case 'CSE': return '#2563eb';
+      case 'MECH': return '#0d9488';
+      case 'BIO': return '#16a34a';
+      case 'HSS': return '#d97706';
+      default: return '#2563eb';
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ padding: 60, textAlign: 'center', color: '#64748b' }}>
@@ -66,95 +76,101 @@ export const Departments: React.FC<DepartmentsProps> = ({ onSelectFaculty }) => 
     <div style={{ paddingBottom: 64 }}>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 6 }} className="badge-pill">
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 8, background: '#eff6ff', borderColor: '#bfdbfe' }} className="badge-pill">
           <Building2 size={12} color="#2563eb" />
-          <span>INSTITUTIONAL BENCHMARKING</span>
+          <span style={{ color: '#2563eb', fontWeight: 700 }}>INSTITUTIONAL BENCHMARKING</span>
         </div>
-        <h1 style={{ fontSize: 26, color: 'var(--text-primary)', marginBottom: 6 }}>
+        <h1 style={{ fontSize: 27, color: 'var(--text-primary)', marginBottom: 8, letterSpacing: '-0.02em' }}>
           Department Analytics & Discipline Equity
         </h1>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)', maxWidth: 800 }}>
+        <p style={{ fontSize: 14, color: 'var(--text-secondary)', maxWidth: 820, lineHeight: 1.6 }}>
           Rigorous discipline-aware benchmarking across Computer Science, Mechanical Engineering, Biotechnology, and Humanities & Social Sciences. The engine dynamically reallocates weights for non-applicable pillars (e.g. patents in HSS) to guarantee an auditable 100% composite scale for every department.
         </p>
       </div>
 
       {/* Department Selector Tabs */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
-        {departments.map(d => (
-          <button
-            key={d.code}
-            onClick={() => setSelectedDept(d.code)}
-            className="glass-panel"
-            style={{
-              padding: '16px 24px',
-              flex: 1,
-              minWidth: 200,
-              background: selectedDept === d.code ? '#fff' : 'rgba(255, 255, 255, 0.7)',
-              borderColor: selectedDept === d.code ? '#2563eb' : 'var(--border-light)',
-              boxShadow: selectedDept === d.code ? '0 6px 20px rgba(37, 99, 235, 0.12)' : 'var(--shadow-sm)',
-              borderTop: selectedDept === d.code ? '4px solid #2563eb' : '1px solid var(--border-light)',
-              textAlign: 'left'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <span className={`dept-tag dept-${(d.code || '').toLowerCase()}`}>{d.code}</span>
-              <span style={{ fontSize: 18, fontWeight: 800, color: '#0a192f' }}>
-                {d.mean_score != null ? d.mean_score.toFixed(1) : '—'}
-              </span>
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>{d.name}</div>
-            <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
-              Top: {d.top_researcher ? `${d.top_researcher.name} (${d.top_researcher.score ?? '—'})` : '—'}
-            </div>
-          </button>
-        ))}
+      <div style={{ display: 'flex', gap: 14, marginBottom: 24, flexWrap: 'wrap' }}>
+        {departments.map(d => {
+          const isSelected = selectedDept === d.code;
+          const color = getBorderColor(d.code);
+          return (
+            <button
+              key={d.code}
+              onClick={() => setSelectedDept(d.code)}
+              className="glass-panel"
+              style={{
+                padding: '16px 22px',
+                flex: 1,
+                minWidth: 200,
+                background: isSelected ? '#fff' : 'rgba(255, 255, 255, 0.75)',
+                borderColor: isSelected ? color : 'var(--border-light)',
+                boxShadow: isSelected ? `0 8px 24px ${color}20` : 'var(--shadow-sm)',
+                borderTop: isSelected ? `4px solid ${color}` : '1px solid var(--border-light)',
+                textAlign: 'left',
+                transition: 'all 0.2s var(--ease-spring)',
+                cursor: 'pointer'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <span className={`dept-tag dept-${(d.code || '').toLowerCase()}`}>{d.code}</span>
+                <span style={{ fontSize: 20, fontWeight: 800, color: '#0a192f', fontFamily: 'var(--font-display)' }}>
+                  {d.mean_score != null ? d.mean_score.toFixed(1) : '—'}
+                </span>
+              </div>
+              <div style={{ fontSize: 13.5, fontWeight: 700, color: '#1e293b' }}>{d.name}</div>
+              <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
+                Top: {d.top_researcher ? `${d.top_researcher.name} (${d.top_researcher.score ?? '—'})` : '—'}
+              </div>
+            </button>
+          );
+        })}
       </div>
 
       {/* Active Department Deep-Dive & Discipline Weight Callout */}
       <div className="grid-2" style={{ marginBottom: 24 }}>
         {/* Left: Department Profile & Metrics */}
-        <div className="glass-panel" style={{ padding: 24, background: '#fff' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <div className="glass-panel" style={{ padding: 26, background: '#fff' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
             <span className={`dept-tag dept-${(activeDeptInfo.code || '').toLowerCase()}`}>{activeDeptInfo.code}</span>
-            <h2 style={{ fontSize: 18, color: 'var(--text-primary)' }}>{activeDeptInfo.name}</h2>
+            <h2 style={{ fontSize: 19, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>{activeDeptInfo.name}</h2>
           </div>
           <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6, marginBottom: 20 }}>
             {activeDeptInfo.description || 'Department evaluation profile grounded in PostgreSQL research schema.'}
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-            <div style={{ background: '#f8fafc', padding: 12, borderRadius: 10, border: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: 11, color: '#64748b' }}>Publication Volume</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#0a192f' }}>
+            <div style={{ background: '#f8fafc', padding: 14, borderRadius: 12, border: '1px solid #e2e8f0' }}>
+              <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Publication Volume</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#0a192f', marginTop: 2 }}>
                 {activeDeptInfo.total_pubs != null ? `${activeDeptInfo.total_pubs} papers` : '—'}
               </div>
-              <div style={{ fontSize: 10.5, color: '#059669' }}>
+              <div style={{ fontSize: 11, color: '#059669', fontWeight: 600, marginTop: 2 }}>
                 {activeDeptInfo.q1_percentage != null ? `${activeDeptInfo.q1_percentage}% in Q1 journals` : 'Q1 share pending'}
               </div>
             </div>
 
-            <div style={{ background: '#f8fafc', padding: 12, borderRadius: 10, border: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: 11, color: '#64748b' }}>Total Grant Mobilization</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#7c3aed' }}>
+            <div style={{ background: '#f8fafc', padding: 14, borderRadius: 12, border: '1px solid #e2e8f0' }}>
+              <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Total Grant Mobilization</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#7c3aed', marginTop: 2 }}>
                 {activeDeptInfo.total_funding_lakhs != null ? `₹${activeDeptInfo.total_funding_lakhs}L` : '—'}
               </div>
-              <div style={{ fontSize: 10.5, color: '#64748b' }}>National funding bodies</div>
+              <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>National funding bodies</div>
             </div>
 
-            <div style={{ background: '#f8fafc', padding: 12, borderRadius: 10, border: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: 11, color: '#64748b' }}>Cumulative Citations</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#0a192f' }}>
+            <div style={{ background: '#f8fafc', padding: 14, borderRadius: 12, border: '1px solid #e2e8f0' }}>
+              <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Cumulative Citations</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#0a192f', marginTop: 2 }}>
                 {activeDeptInfo.total_cits != null ? activeDeptInfo.total_cits.toLocaleString() : '—'}
               </div>
-              <div style={{ fontSize: 10.5, color: '#64748b' }}>Point-in-time snapshot</div>
+              <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>Point-in-time snapshot</div>
             </div>
 
-            <div style={{ background: '#f8fafc', padding: 12, borderRadius: 10, border: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: 11, color: '#64748b' }}>Patents / IP Disclosures</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#d97706' }}>
+            <div style={{ background: '#f8fafc', padding: 14, borderRadius: 12, border: '1px solid #e2e8f0' }}>
+              <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Patents / IP Disclosures</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#d97706', marginTop: 2 }}>
                 {activeDeptInfo.patents_count != null ? activeDeptInfo.patents_count : '—'}
               </div>
-              <div style={{ fontSize: 10.5, color: '#64748b' }}>{activeDeptInfo.code === 'HSS' ? 'Not structurally applicable' : 'Active IP portfolio'}</div>
+              <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{activeDeptInfo.code === 'HSS' ? 'Not structurally applicable' : 'Active IP portfolio'}</div>
             </div>
           </div>
         </div>
@@ -163,78 +179,78 @@ export const Departments: React.FC<DepartmentsProps> = ({ onSelectFaculty }) => 
         <div
           className="glass-panel"
           style={{
-            padding: 24,
-            background: activeDeptInfo.code === 'HSS' ? '#fffbeb' : '#fff',
+            padding: 26,
+            background: activeDeptInfo.code === 'HSS' ? 'linear-gradient(135deg, #fffbeb 0%, #fff 100%)' : '#fff',
             borderColor: activeDeptInfo.code === 'HSS' ? '#fde68a' : 'var(--border-light)'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <Scale size={16} color={activeDeptInfo.code === 'HSS' ? '#b45309' : '#2563eb'} />
-            <h3 style={{ fontSize: 17, color: 'var(--text-primary)' }}>
+            <h3 style={{ fontSize: 18, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
               {activeDeptInfo.code === 'HSS' ? 'Discipline Equity in Action (HSS Reweighting)' : 'Applied Pillar Weights Matrix'}
             </h3>
           </div>
 
-          <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6, marginBottom: 16 }}>
+          <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.62, marginBottom: 18 }}>
             {activeDeptInfo.code === 'HSS'
               ? 'Humanities & Social Sciences do not produce industrial patents. Instead of imposing an automatic 15% handicap, the engine reallocates this weight to Publications (+10%) and Citations (+5%), ensuring HSS faculty compete on a full 100% composite scale.'
               : 'Standard Science & Engineering weight distribution reflecting balanced laboratory research, patent disclosures, competitive grant mobilization, and doctoral supervision.'}
           </p>
 
           {activeDeptInfo.weights ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                  <span>Publication Quality</span>
+                  <span style={{ fontWeight: 600 }}>Publication Quality</span>
                   <strong>{activeDeptInfo.weights.publication * 100}%</strong>
                 </div>
-                <div style={{ width: '100%', height: 6, background: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{ width: `${activeDeptInfo.weights.publication * 100}%`, height: '100%', background: '#2563eb' }} />
+                <div style={{ width: '100%', height: 6, background: '#e2e8f0', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ width: `${activeDeptInfo.weights.publication * 100}%`, height: '100%', background: '#2563eb', borderRadius: 4 }} />
                 </div>
               </div>
 
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                  <span>Citation Impact</span>
+                  <span style={{ fontWeight: 600 }}>Citation Impact</span>
                   <strong>{activeDeptInfo.weights.citation * 100}%</strong>
                 </div>
-                <div style={{ width: '100%', height: 6, background: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{ width: `${activeDeptInfo.weights.citation * 100}%`, height: '100%', background: '#10b981' }} />
+                <div style={{ width: '100%', height: 6, background: '#e2e8f0', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ width: `${activeDeptInfo.weights.citation * 100}%`, height: '100%', background: '#10b981', borderRadius: 4 }} />
                 </div>
               </div>
 
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                  <span>Patents & IP</span>
+                  <span style={{ fontWeight: 600 }}>Patents & IP</span>
                   <strong>{activeDeptInfo.weights.patents * 100}%</strong>
                 </div>
-                <div style={{ width: '100%', height: 6, background: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{ width: `${activeDeptInfo.weights.patents * 100}%`, height: '100%', background: '#0ea5e9' }} />
+                <div style={{ width: '100%', height: 6, background: '#e2e8f0', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ width: `${activeDeptInfo.weights.patents * 100}%`, height: '100%', background: '#0ea5e9', borderRadius: 4 }} />
                 </div>
               </div>
 
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                  <span>Sponsored Funding</span>
+                  <span style={{ fontWeight: 600 }}>Sponsored Funding</span>
                   <strong>{activeDeptInfo.weights.funding * 100}%</strong>
                 </div>
-                <div style={{ width: '100%', height: 6, background: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{ width: `${activeDeptInfo.weights.funding * 100}%`, height: '100%', background: '#7c3aed' }} />
+                <div style={{ width: '100%', height: 6, background: '#e2e8f0', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ width: `${activeDeptInfo.weights.funding * 100}%`, height: '100%', background: '#7c3aed', borderRadius: 4 }} />
                 </div>
               </div>
 
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                  <span>PhD Guidance</span>
+                  <span style={{ fontWeight: 600 }}>PhD Guidance</span>
                   <strong>{activeDeptInfo.weights.phd * 100}%</strong>
                 </div>
-                <div style={{ width: '100%', height: 6, background: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{ width: `${activeDeptInfo.weights.phd * 100}%`, height: '100%', background: '#f59e0b' }} />
+                <div style={{ width: '100%', height: 6, background: '#e2e8f0', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ width: `${activeDeptInfo.weights.phd * 100}%`, height: '100%', background: '#f59e0b', borderRadius: 4 }} />
                 </div>
               </div>
 
-              <div style={{ marginTop: 16, borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: 10, display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                <span style={{ color: '#475569' }}>Total Verified Weight Sum:</span>
+              <div style={{ marginTop: 16, borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: 12, display: 'flex', justifyContent: 'space-between', fontSize: 12.5 }}>
+                <span style={{ color: '#475569', fontWeight: 500 }}>Total Verified Weight Sum:</span>
                 <span style={{ fontWeight: 800, color: '#059669' }}>
                   {(activeDeptInfo.weights.weight_sum * 100).toFixed(0)}% (1.000)
                 </span>
@@ -247,8 +263,8 @@ export const Departments: React.FC<DepartmentsProps> = ({ onSelectFaculty }) => 
       </div>
 
       {/* Department Faculty Table */}
-      <div className="glass-panel" style={{ padding: 24, background: '#fff' }}>
-        <h3 style={{ fontSize: 17, marginBottom: 16 }}>
+      <div className="glass-panel" style={{ padding: 26, background: '#fff' }}>
+        <h3 style={{ fontSize: 18, marginBottom: 18, letterSpacing: '-0.01em' }}>
           Faculty Roster for {activeDeptInfo.name} ({deptFaculty.length} Members)
         </h3>
 
@@ -297,7 +313,7 @@ export const Departments: React.FC<DepartmentsProps> = ({ onSelectFaculty }) => 
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', padding: 24, color: '#64748b' }}>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: 32, color: '#64748b' }}>
                     No faculty records found for this department. Connect the API to load records.
                   </td>
                 </tr>
@@ -309,4 +325,3 @@ export const Departments: React.FC<DepartmentsProps> = ({ onSelectFaculty }) => 
     </div>
   );
 };
-

@@ -66,14 +66,24 @@ export const Header: React.FC<HeaderProps> = ({
               style={{
                 background: 'linear-gradient(135deg, #0a192f 0%, #1e3a8a 100%)',
                 color: '#fff',
-                border: 'none',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
                 padding: '6px 14px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(10, 25, 47, 0.2)',
+                transition: 'all 0.18s var(--ease-spring)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px) scale(1.02)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(10, 25, 47, 0.28)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(10, 25, 47, 0.2)';
               }}
               title="Open AI Research Assistant"
             >
               <Sparkles size={13} color="#60a5fa" />
-              <span>Ask AI</span>
+              <span style={{ fontWeight: 700 }}>Ask AI</span>
             </button>
           )}
         </div>

@@ -50,6 +50,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (loading) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+    );
+
+    const elements = document.querySelectorAll('.reveal-on-scroll');
+    elements.forEach(el => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [loading]);
+
   if (loading) {
     return (
       <div style={{ padding: 60, textAlign: 'center', color: '#64748b' }}>
@@ -85,37 +104,49 @@ export const Dashboard: React.FC<DashboardProps> = ({
       )}
 
       {/* 1. Hero Section with Interactive Three.js WebGL Ecosystem */}
-      <HeroEcosystem
-        facultyList={facultyList}
-        departments={departments}
-        onSelectFaculty={onSelectFaculty}
-        onSelectDepartment={onSelectDepartment}
-      />
+      <div className="reveal-on-scroll revealed">
+        <HeroEcosystem
+          facultyList={facultyList}
+          departments={departments}
+          onSelectFaculty={onSelectFaculty}
+          onSelectDepartment={onSelectDepartment}
+        />
+      </div>
 
       {/* 2. Floating Institutional KPI Summary Cards */}
-      <FloatingKpiCards overview={overview} />
+      <div className="reveal-on-scroll revealed">
+        <FloatingKpiCards overview={overview} />
+      </div>
 
       {/* 3. Department Performance & Discipline Equity Grid */}
-      <DepartmentPerformanceCard
-        departments={departments}
-        onSelectDepartment={onSelectDepartment}
-      />
+      <div className="reveal-on-scroll">
+        <DepartmentPerformanceCard
+          departments={departments}
+          onSelectDepartment={onSelectDepartment}
+        />
+      </div>
 
       {/* 4. Top Researchers Leaderboard */}
-      <TopResearchersCard
-        topResearchers={overview?.top_researchers || []}
-        onSelectFaculty={onSelectFaculty}
-        onViewAllFaculty={() => onNavigateTab('faculty')}
-      />
+      <div className="reveal-on-scroll">
+        <TopResearchersCard
+          topResearchers={overview?.top_researchers || []}
+          onSelectFaculty={onSelectFaculty}
+          onViewAllFaculty={() => onNavigateTab('faculty')}
+        />
+      </div>
 
       {/* 5. 5-Year Research Trends */}
-      <ResearchTrendsCard trends={overview?.annual_trends || []} />
+      <div className="reveal-on-scroll">
+        <ResearchTrendsCard trends={overview?.annual_trends || []} />
+      </div>
 
       {/* 6. AI Research Assistant Spotlight Card */}
-      <AssistantSpotlightCard
-        onOpenAssistant={() => onNavigateTab('assistant')}
-        onOpenAssistantWithPrompt={onOpenAssistantWithPrompt}
-      />
+      <div className="reveal-on-scroll">
+        <AssistantSpotlightCard
+          onOpenAssistant={() => onNavigateTab('assistant')}
+          onOpenAssistantWithPrompt={onOpenAssistantWithPrompt}
+        />
+      </div>
     </div>
   );
 };

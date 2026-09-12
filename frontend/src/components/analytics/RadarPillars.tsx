@@ -64,6 +64,16 @@ export const RadarPillars: React.FC<RadarPillarsProps> = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <defs>
+          <linearGradient id="facultyRadarGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#2563eb" stopOpacity="0.32" />
+            <stop offset="100%" stopColor="#60a5fa" stopOpacity="0.12" />
+          </linearGradient>
+          <filter id="glowFilter" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#2563eb" floodOpacity="0.25" />
+          </filter>
+        </defs>
+
         {/* Concentric Grid Pentagons */}
         {gridLevels.map((lvl) => {
           const pts = Array.from({ length: totalAxes })
@@ -111,13 +121,14 @@ export const RadarPillars: React.FC<RadarPillarsProps> = ({
           />
         )}
 
-        {/* Faculty Profile Polygon (Glowing Blue) */}
+        {/* Faculty Profile Polygon (Luminous Blue) */}
         {facultyPoints && (
           <polygon
             points={facultyPoints}
-            fill="rgba(37, 99, 235, 0.22)"
+            fill="url(#facultyRadarGradient)"
             stroke="#2563eb"
             strokeWidth="2.5"
+            filter="url(#glowFilter)"
           />
         )}
 
@@ -168,12 +179,12 @@ export const RadarPillars: React.FC<RadarPillarsProps> = ({
 
       {/* Legend */}
       <div style={{ display: 'flex', gap: 16, marginTop: 4, fontSize: 11, color: '#64748b' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ width: 12, height: 3, background: '#2563eb', borderRadius: 2 }} />
           <span>Faculty Profile</span>
         </div>
         {deptPoints && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ width: 12, height: 2, background: '#94a3b8', borderTop: '1px dashed #64748b' }} />
             <span>Dept Benchmark</span>
           </div>
@@ -182,4 +193,3 @@ export const RadarPillars: React.FC<RadarPillarsProps> = ({
     </div>
   );
 };
-

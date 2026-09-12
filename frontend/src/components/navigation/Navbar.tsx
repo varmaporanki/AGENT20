@@ -64,10 +64,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 5,
+                gap: 6,
                 background: '#fff',
                 borderColor: '#cbd5e1',
-                fontSize: 11.5
+                fontSize: 11.5,
+                fontWeight: 600,
+                boxShadow: 'var(--shadow-sm)'
               }}
               title="View deterministic scoring formulas and weight rules"
             >
@@ -75,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>Scoring Methodology</span>
             </button>
           )}
-          <span style={{ fontSize: 11, color: '#64748b', fontFamily: 'var(--font-mono)' }}>
+          <span style={{ fontSize: 11, color: '#64748b', fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
             EVAL: 2024-12-31
           </span>
         </div>
