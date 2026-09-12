@@ -292,3 +292,276 @@ def test_10_api_key_never_exposed_in_response(ai_client: TestClient):
         assert secret_key not in response.text
     finally:
         ai_router_mod._groq_service.settings.GROQ_API_KEY = orig_key
+
+
+# =============================================================================
+# Generic Research Intelligence Assistant Tests (POST /api/v1/ai/assistant)
+# =============================================================================
+
+def test_11_generic_assistant_endpoint_exists(ai_client: TestClient):
+    """1. Verify generic assistant endpoint exists and handles valid inquiries."""
+    mock_client = MagicMock()
+    mock_choice = MagicMock()
+    mock_choice.message.content = json.dumps({
+        "answer": "Computer Science and Biotechnology show distinct research profiles across the institution.",
+        "related_faculty": ["EMP0002", "EMP0014"],
+        "related_departments": ["CSE", "BIO"],
+        "key_takeaways": ["CSE leads in volume.", "BIO leads in quality."],
+    })
+    mock_response = MagicMock()
+    mock_response.choices = [mock_choice]
+    mock_client.chat.completions.create.return_value = mock_response
+
+    ai_router_mod._groq_service = GroqService(client=mock_client)
+
+    response = ai_client.post(
+        "/api/v1/ai/assistant",
+        json={"query": "Overview of research across departments"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "query" in data
+    assert "answer" in data
+    assert "evidence" in data
+    assert "related_faculty" in data
+    assert "related_departments" in data
+    assert "disclaimer" in data
+
+
+def test_12_generic_assistant_missing_api_key_returns_503(ai_client: TestClient):
+    """2. Verify missing GROQ_API_KEY returns controlled 503."""
+    orig_key = ai_router_mod._groq_service.settings.GROQ_API_KEY
+    orig_client = ai_router_mod._groq_service._client
+
+    ai_router_mod._groq_service.settings.GROQ_API_KEY = None
+    ai_router_mod._groq_service._client = None
+
+    try:
+        response = ai_client.post(
+            "/api/v1/ai/assistant",
+            json={"query": "compare the performance between CSE and BIO departments"},
+        )
+        assert response.status_code == 503
+        data = response.json()
+        assert "not configured" in data["detail"].lower()
+    finally:
+        ai_router_mod._groq_service.settings.GROQ_API_KEY = orig_key
+        ai_router_mod._groq_service._client = orig_client
+
+
+def test_13_generic_assistant_empty_query_returns_400_or_422(ai_client: TestClient):
+    """3. Verify empty or whitespace query returns 400 or 422."""
+    # Empty string after stripping
+    response = ai_client.post(
+        "/api/v1/ai/assistant",
+        json={"query": "   "},
+    )
+    assert response.status_code == 400
+    assert "cannot be empty" in response.json()["detail"].lower()
+
+    # Missing query field entirely
+    response_missing = ai_client.post(
+        "/api/v1/ai/assistant",
+        json={},
+    )
+    assert response_missing.status_code == 422
+
+
+def test_14_department_comparison_retrieves_authoritative_data(ai_client: TestClient):
+    """4. Verify department comparison query retrieves authoritative department analytics."""
+    mock_client = MagicMock()
+    mock_choice = MagicMock()
+    mock_choice.message.content = json.dumps({
+        "answer": "Comparing CSE and BIO shows Biotechnology achieved higher average productivity.",
+        "related_faculty": ["EMP0014"],
+        "related_departments": ["CSE", "BIO"],
+    })
+    mock_response = MagicMock()
+    mock_response.choices = [mock_choice]
+    mock_client.chat.completions.create.return_value = mock_response
+
+    ai_router_mod._groq_service = GroqService(client=mock_client)
+
+    response = ai_client.post(
+        "/api/v1/ai/assistant",
+        json={"query": "compare the performance between CSE and BIO departments"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+
+    # Check prompt passed to Groq contained authoritative CSE and BIO data
+    messages = mock_client.chat.completions.create.call_args.kwargs["messages"]
+    user_prompt = next(m["content"] for m in messages if m["role"] == "user")
+    assert "CSE" in user_prompt
+    assert "BIO" in user_prompt
+
+    # Check response evidence contains authoritative metrics
+    evidence_metrics = [e["metric"] for e in data["evidence"]]
+    assert any("CSE" in m for m in evidence_metrics)
+    assert any("BIO" in m for m in evidence_metrics)
+    assert "CSE" in data["related_departments"]
+    assert "BIO" in data["related_departments"]
+
+
+def test_15_ranking_question_uses_deterministic_ranking_data(ai_client: TestClient):
+    """5. Verify ranking query uses deterministic ranking data and preserves authoritative ranks."""
+    mock_client = MagicMock()
+    mock_choice = MagicMock()
+    mock_choice.message.content = json.dumps({
+        "answer": "The top ranked faculty members based on deterministic evaluation are led by our top performers.",
+        "related_faculty": ["EMP0014", "EMP0003"],
+        "related_departments": ["BIO", "CSE"],
+    })
+    mock_response = MagicMock()
+    mock_response.choices = [mock_choice]
+    mock_client.chat.completions.create.return_value = mock_response
+
+    ai_router_mod._groq_service = GroqService(client=mock_client)
+
+    response = ai_client.post(
+        "/api/v1/ai/assistant",
+        json={"query": "who are the top 5 faculty members?"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+
+    # Verify prompt received top ranking records
+    messages = mock_client.chat.completions.create.call_args.kwargs["messages"]
+    user_prompt = next(m["content"] for m in messages if m["role"] == "user")
+    assert "institutional_top_rankings" in user_prompt
+
+    # Verify deterministic evidence includes ranking records
+    assert len(data["evidence"]) > 0
+    assert any("Rank #" in e["metric"] for e in data["evidence"])
+
+
+def test_16_faculty_query_uses_authoritative_faculty_detail(ai_client: TestClient):
+    """6. Verify faculty query uses authoritative FacultyDetail and preserves EMP0002 values."""
+    mock_client = MagicMock()
+    mock_choice = MagicMock()
+    mock_choice.message.content = json.dumps({
+        "answer": "Dr. Rajesh Kumar (EMP0002) holds a final score of 16.3.",
+        "related_faculty": ["EMP0002"],
+        "related_departments": ["CSE"],
+    })
+    mock_response = MagicMock()
+    mock_response.choices = [mock_choice]
+    mock_client.chat.completions.create.return_value = mock_response
+
+    ai_router_mod._groq_service = GroqService(client=mock_client)
+
+    response = ai_client.post(
+        "/api/v1/ai/assistant",
+        json={"query": "explain the score for EMP0002"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+
+    # Verify prompt included exact EMP0002 metrics
+    messages = mock_client.chat.completions.create.call_args.kwargs["messages"]
+    user_prompt = next(m["content"] for m in messages if m["role"] == "user")
+    assert "EMP0002" in user_prompt
+    assert "16.3" in user_prompt
+
+    # Verify evidence contains EMP0002 final score
+    score_evidence = next((e for e in data["evidence"] if "Final Score" in e["metric"]), None)
+    assert score_evidence is not None
+    assert score_evidence["value"] == 16.3
+
+
+def test_17_groq_output_is_validated(ai_client: TestClient):
+    """7. Verify Groq output is validated against GenericAssistantResponse."""
+    mock_client = MagicMock()
+    mock_choice = MagicMock()
+    mock_choice.message.content = json.dumps({
+        "answer": "Here is an analytical breakdown of faculty research velocity.",
+        "related_faculty": ["EMP0003"],
+        "related_departments": ["CSE"],
+    })
+    mock_response = MagicMock()
+    mock_response.choices = [mock_choice]
+    mock_client.chat.completions.create.return_value = mock_response
+
+    ai_router_mod._groq_service = GroqService(client=mock_client)
+
+    response = ai_client.post(
+        "/api/v1/ai/assistant",
+        json={"query": "What are the strongest research areas in CSE?"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["query"] == "What are the strongest research areas in CSE?"
+    assert data["answer"] == "Here is an analytical breakdown of faculty research velocity."
+    assert data["disclaimer"] == "AI-generated interpretation of deterministic institutional analytics."
+    assert isinstance(data["evidence"], list)
+    assert isinstance(data["related_faculty"], list)
+    assert isinstance(data["related_departments"], list)
+
+
+def test_18_malformed_groq_response_returns_502(ai_client: TestClient):
+    """8. Verify malformed Groq response is rejected safely with HTTP 502."""
+    mock_client = MagicMock()
+    mock_choice = MagicMock()
+    mock_choice.message.content = "NOT_JSON_AT_ALL <<>>"
+    mock_response = MagicMock()
+    mock_response.choices = [mock_choice]
+    mock_client.chat.completions.create.return_value = mock_response
+
+    ai_router_mod._groq_service = GroqService(client=mock_client)
+
+    response = ai_client.post(
+        "/api/v1/ai/assistant",
+        json={"query": "compare the performance between CSE and BIO departments"},
+    )
+    assert response.status_code == 502
+    assert "invalid assistant structure" in response.json()["detail"].lower()
+
+
+def test_19_numerical_deterministic_values_cannot_be_overridden_by_groq(ai_client: TestClient):
+    """9. Verify numerical deterministic values in evidence originate from database and cannot be altered."""
+    mock_client = MagicMock()
+    mock_choice = MagicMock()
+    # Groq attempts to hallucinate or state an incorrect score in its narrative
+    mock_choice.message.content = json.dumps({
+        "answer": "Dr. Rajesh Kumar actually has a score of 99.9 and ranks #1.",
+        "related_faculty": ["EMP0002"],
+        "related_departments": ["CSE"],
+    })
+    mock_response = MagicMock()
+    mock_response.choices = [mock_choice]
+    mock_client.chat.completions.create.return_value = mock_response
+
+    ai_router_mod._groq_service = GroqService(client=mock_client)
+
+    response = ai_client.post(
+        "/api/v1/ai/assistant",
+        json={"query": "explain the score for EMP0002"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+
+    # The structured evidence MUST retain the authoritative deterministic score (16.3), not 99.9
+    evidence_score = next(e["value"] for e in data["evidence"] if "Final Score" in e["metric"])
+    assert evidence_score == 16.3
+    assert evidence_score != 99.9
+
+
+def test_20_no_secrets_appear_in_responses_or_logs(ai_client: TestClient):
+    """10. Verify secrets are never exposed in assistant responses or error payloads."""
+    secret_key = "gsk_TopSecretKey9876543210"
+    orig_key = ai_router_mod._groq_service.settings.GROQ_API_KEY
+    ai_router_mod._groq_service.settings.GROQ_API_KEY = secret_key
+
+    try:
+        mock_client = MagicMock()
+        mock_client.chat.completions.create.side_effect = Exception(f"Internal provider failure with key {secret_key}")
+        ai_router_mod._groq_service = GroqService(client=mock_client)
+
+        response = ai_client.post(
+            "/api/v1/ai/assistant",
+            json={"query": "compare the performance between CSE and BIO departments"},
+        )
+        assert secret_key not in response.text
+    finally:
+        ai_router_mod._groq_service.settings.GROQ_API_KEY = orig_key

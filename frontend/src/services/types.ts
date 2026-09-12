@@ -174,6 +174,12 @@ export interface InstitutionOverview {
   }>;
 }
 
+export interface AssistantEvidenceItem {
+  metric: string;
+  value: string | number;
+  source: string;
+}
+
 export interface AssistantQuery {
   question: string;
   contextFacultyId?: string;
@@ -181,11 +187,15 @@ export interface AssistantQuery {
 }
 
 export interface AssistantResponse {
+  query?: string;
   answer: string;
+  evidence?: AssistantEvidenceItem[] | string[];
+  related_faculty?: string[];
+  related_departments?: string[];
+  disclaimer?: string;
   keyFindings?: string[];
   supportingData?: Record<string, unknown>;
   relatedQuestions?: string[];
-  evidence?: string[];
   provider?: string;
 }
 

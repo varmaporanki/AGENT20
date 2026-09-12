@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { assistantService } from '../../services/api';
-import type { AssistantResponse } from '../../services/api';
+import type { AssistantResponse, AssistantEvidenceItem } from '../../services/api';
 import { BotMessageSquare, Send, Sparkles, User, FileText, CheckCircle2 } from 'lucide-react';
 
 interface ChatMessage {
@@ -8,7 +8,10 @@ interface ChatMessage {
   sender: 'user' | 'assistant';
   text: string;
   keyFindings?: string[];
-  evidence?: string[];
+  evidence?: (AssistantEvidenceItem | string)[];
+  relatedFaculty?: string[];
+  relatedDepartments?: string[];
+  disclaimer?: string;
   supportingData?: Record<string, unknown>;
   relatedQuestions?: string[];
   provider?: string;
@@ -32,17 +35,18 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
     {
       id: 'welcome',
       sender: 'assistant',
-      text: 'Welcome to Agent 20 Research Intelligence. I am your academic analytics assistant, strictly grounded in our deterministic PostgreSQL evaluation engine. Ask me about faculty performance, discipline reweighting, publication rigor, or targeted faculty development recommendations.',
+      text: 'Welcome to Agent 20 Research Intelligence. I am your academic analytics assistant, strictly grounded in our deterministic PostgreSQL evaluation engine. Ask me about institution-wide department comparisons, faculty rankings, scoring methodology, or specific researcher profiles.',
       keyFindings: [
         'Deterministic calculations derived from 21-schema PostgreSQL database',
-        'Reproducible evaluation parameter: DATE \'2024-12-31\'',
-        'Zero hallucinated metrics: narratives synthesize audit-verified SQL evidence'
+        'Evaluation baseline date: 2024-12-31',
+        'Zero hallucinated metrics: narrative interpretations synthesize audit-verified database evidence'
       ],
       relatedQuestions: [
-        'Who are the top researchers across the institution?',
-        'How does discipline-aware normalization account for HSS versus engineering?',
-        'Explain the publication quality formula and quartile tiers',
-        'How do extramural grants and patents affect departmental ranking?'
+        'Compare the performance between CSE and BIO departments',
+        'Who are the top 5 faculty members?',
+        'Explain the score for EMP0002',
+        'What are the strongest research areas in CSE?',
+        'Why does HSS use different research weights?'
       ],
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
@@ -88,6 +92,9 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
         text: response.answer,
         keyFindings: response.keyFindings,
         evidence: response.evidence,
+        relatedFaculty: response.related_faculty,
+        relatedDepartments: response.related_departments,
+        disclaimer: response.disclaimer,
         supportingData: response.supportingData,
         relatedQuestions: response.relatedQuestions,
         provider: response.provider,
@@ -95,11 +102,12 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
       };
 
       setMessages(prev => [...prev, aiMsg]);
-    } catch {
+    } catch (err: any) {
       const errorMsg: ChatMessage = {
         id: 'ai-err-' + Date.now(),
         sender: 'assistant',
-        text: 'AI Research Assistant is awaiting backend connection. Please ensure the backend service at http://localhost:8000/api/v1 is online to query grounded research intelligence.',
+        text: `Unable to synthesize research intelligence: ${err?.message || 'Server error'}.\n\nPlease ensure the backend service at http://localhost:8000/api/v1 is online and GROQ_API_KEY is configured.`,
+        disclaimer: 'Deterministic institutional metrics remain fully available across Faculty and Department dashboards.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prev => [...prev, errorMsg]);
@@ -167,28 +175,68 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
               {/* Relational Evidence Block */}
               {msg.evidence && msg.evidence.length > 0 && (
                 <div style={{ marginTop: 12, background: '#eff6ff', padding: 12, borderRadius: 10, border: '1px solid #bfdbfe' }}>
-                  <div style={{ fontSize: 10.5, fontWeight: 700, color: '#1e40af', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <div style={{ fontSize: 10.5, fontWeight: 700, color: '#1e40af', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
                     <FileText size={12} color="#2563eb" />
-                    <span>SQL Calculation Evidence</span>
+                    <span>Authoritative Deterministic Evidence</span>
                   </div>
-                  {msg.evidence.map((ev, i) => (
-                    <div key={i} style={{ fontSize: 11, color: '#1e3a8a', fontFamily: 'var(--font-mono)', lineHeight: 1.5 }}>
-                      • {ev}
-                    </div>
+                  {msg.evidence.map((ev, i) => {
+                    const isObj = typeof ev === 'object' && ev !== null;
+                    const metric = isObj ? (ev as any).metric : 'Metric';
+                    const value = isObj ? (ev as any).value : ev;
+                    const source = isObj ? (ev as any).source : null;
+                    return (
+                      <div key={i} style={{ fontSize: 11.5, color: '#1e3a8a', lineHeight: 1.6, marginBottom: 3 }}>
+                        • <strong>{metric}:</strong> <span style={{ fontFamily: 'var(--font-mono)' }}>{String(value)}</span> {source && <span style={{ color: '#64748b', fontSize: 10.5 }}>({source})</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Related Departments & Faculty Entities */}
+              {((msg.relatedDepartments && msg.relatedDepartments.length > 0) || (msg.relatedFaculty && msg.relatedFaculty.length > 0)) && (
+                <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                  {msg.relatedDepartments?.map((dept) => (
+                    <span
+                      key={dept}
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        padding: '3px 8px',
+                        borderRadius: 6,
+                        background: '#f1f5f9',
+                        color: '#334155',
+                        border: '1px solid #cbd5e1'
+                      }}
+                    >
+                      🏛️ Dept: {dept}
+                    </span>
+                  ))}
+                  {msg.relatedFaculty?.map((empNo) => (
+                    <button
+                      key={empNo}
+                      onClick={() => onSelectFaculty && onSelectFaculty(empNo)}
+                      className="chip-btn"
+                      style={{
+                        background: '#fff',
+                        borderColor: '#2563eb',
+                        color: '#2563eb',
+                        fontWeight: 700,
+                        fontSize: 11,
+                        padding: '3px 10px'
+                      }}
+                      title={`Open dossier for ${empNo}`}
+                    >
+                      👤 {empNo} Dossier →
+                    </button>
                   ))}
                 </div>
               )}
 
-              {/* Supporting Data Link */}
-              {msg.supportingData && typeof msg.supportingData.employee_no === 'string' && onSelectFaculty && (
-                <div style={{ marginTop: 12 }}>
-                  <button
-                    onClick={() => onSelectFaculty(msg.supportingData?.employee_no as string)}
-                    className="chip-btn"
-                    style={{ background: '#fff', borderColor: '#2563eb', color: '#2563eb', fontWeight: 700 }}
-                  >
-                    Open {msg.supportingData.employee_no} Dossier →
-                  </button>
+              {/* Disclaimer */}
+              {msg.disclaimer && (
+                <div style={{ marginTop: 8, fontSize: 10.5, color: '#64748b', fontStyle: 'italic' }}>
+                  ⚖️ {msg.disclaimer}
                 </div>
               )}
 

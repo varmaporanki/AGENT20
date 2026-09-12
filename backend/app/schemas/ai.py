@@ -1,9 +1,9 @@
 """
-Pydantic schemas for AI research insight and score explanation responses.
+Pydantic schemas for AI research insight, score explanation, and generic assistant responses.
 Guarantees strict separation between deterministic numerical analytics and AI narratives.
 """
 
-from typing import List, Union
+from typing import List, Union, Optional
 from pydantic import BaseModel, Field
 
 
@@ -78,6 +78,53 @@ class ScoreExplanationResponse(BaseModel):
 
 
 # -----------------------------------------------------------------------------
+# Generic Research Assistant Schemas
+# -----------------------------------------------------------------------------
+
+class AssistantQueryRequest(BaseModel):
+    """Request model for generic institutional research assistant inquiries."""
+
+    query: str = Field(..., min_length=1, description="Natural language question from user")
+    faculty_employee_no: Optional[str] = Field(default=None, description="Optional faculty employee context")
+    department_code: Optional[str] = Field(default=None, description="Optional department context")
+
+
+class AssistantEvidenceItem(BaseModel):
+    """Deterministic evidence item supporting assistant responses."""
+
+    metric: str = Field(description="Name of evaluated metric or benchmark")
+    value: Union[str, int, float] = Field(description="Deterministic scalar value from database")
+    source: str = Field(description="Originating authoritative source or component")
+
+
+class GenericAssistantResponse(BaseModel):
+    """Grounded response model for generic institutional research assistant queries."""
+
+    query: str = Field(description="Original user query")
+    answer: str = Field(description="Evidence-grounded analytical narrative")
+    evidence: List[AssistantEvidenceItem] = Field(
+        default_factory=list,
+        description="Authoritative metrics supporting the narrative",
+    )
+    related_faculty: List[str] = Field(
+        default_factory=list,
+        description="Relevant faculty employee identifiers",
+    )
+    related_departments: List[str] = Field(
+        default_factory=list,
+        description="Relevant department codes",
+    )
+    disclaimer: str = Field(
+        default="AI-generated interpretation of deterministic institutional analytics.",
+        description="Mandatory compliance disclaimer",
+    )
+
+
+# Backward-compatible alias
+AssistantResponse = GenericAssistantResponse
+
+
+# -----------------------------------------------------------------------------
 # Internal Pydantic Schemas for Validating Raw AI Provider Output
 # -----------------------------------------------------------------------------
 
@@ -100,3 +147,12 @@ class AIScoreExplanationPayload(BaseModel):
     workload_and_context_impact: str
     peer_comparison: str
     recommendations: List[str]
+
+
+class AIAssistantPayload(BaseModel):
+    """Internal validation model for generic AI assistant JSON output."""
+
+    answer: str
+    related_faculty: List[str] = Field(default_factory=list)
+    related_departments: List[str] = Field(default_factory=list)
+    key_takeaways: Optional[List[str]] = Field(default_factory=list)

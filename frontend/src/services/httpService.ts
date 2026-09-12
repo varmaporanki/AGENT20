@@ -19,6 +19,7 @@ import type {
   InstitutionOverview,
   AssistantQuery,
   AssistantResponse,
+  AssistantEvidenceItem,
   FacultyFilterParams,
   DepartmentCode,
   AppliedWeights,
@@ -41,8 +42,20 @@ async function fetchJson<T>(path: string, options?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`API Request Failed [${response.status}] ${response.statusText}: ${errText}`);
+    let detailMsg = response.statusText;
+    try {
+      const errJson = await response.json();
+      if (errJson?.detail) {
+        detailMsg = typeof errJson.detail === 'string' ? errJson.detail : JSON.stringify(errJson.detail);
+      }
+    } catch {
+      try {
+        detailMsg = await response.text();
+      } catch {
+        // fallback to statusText
+      }
+    }
+    throw new Error(`[${response.status}] ${detailMsg}`);
   }
 
   return response.json();
@@ -469,123 +482,89 @@ export const httpDashboardService = {
 
 // ----------------------------------------------------------------------------
 // AI Assistant Service
-// Adapts queries honestly to faculty-specific endpoints:
-// POST /api/v1/ai/faculty/{employee_no}/insight
-// POST /api/v1/ai/faculty/{employee_no}/explain-score
+// Calls authoritative backend endpoint:
+// POST /api/v1/ai/assistant
 // ----------------------------------------------------------------------------
 
 export const httpAssistantService = {
   async ask(query: AssistantQuery): Promise<AssistantResponse> {
     const q = query.question.trim();
-
-    // 1. Detect target faculty employee number
-    let targetEmpNo: string | null = query.contextFacultyId || null;
-    if (!targetEmpNo) {
-      const match = q.match(/\b(EMP\d{4})\b/i);
-      if (match) {
-        targetEmpNo = match[1].toUpperCase();
-      }
+    if (!q) {
+      throw new Error('Query cannot be empty');
     }
 
-    // 2. If target faculty is specified, query authoritative AI endpoints
-    if (targetEmpNo) {
-      const isExplain = /\b(explain|why|breakdown|weight|weights|calculate|calculation|formula|rank)\b/i.test(q);
-
-      if (isExplain) {
-        try {
-          const res = await fetchJson<any>(`/ai/faculty/${targetEmpNo}/explain-score`, {
-            method: 'POST'
-          });
-
-          return {
-            answer: `${res.score_band_summary}\n\n${res.workload_and_context_impact}\n\n${res.peer_comparison}`,
-            keyFindings: [
-              `Final Score: ${res.final_score?.toFixed(1)} (Dept Rank: #${res.department_rank}, Institution Rank: #${res.institution_rank})`,
-              `Base Score: ${res.base_score?.toFixed(1)} | Combined Workload Adjustment: ${res.combined_adjustment?.toFixed(3)}x`,
-              ...(res.strongest_pillars || []).map((p: string) => `Strength: ${p}`),
-              ...(res.weakest_pillars || []).map((p: string) => `Growth Area: ${p}`)
-            ],
-            evidence: [
-              `Publication Quality: ${res.publication_score?.toFixed(1)}/100`,
-              `Citation Impact: ${res.citation_score?.toFixed(1)}/100`,
-              `Patents: ${res.patent_score?.toFixed(1)}/100`,
-              `Sponsored Funding: ${res.funding_score?.toFixed(1)}/100`,
-              `PhD Supervision: ${res.phd_score?.toFixed(1)}/100`,
-              `Workload Factor: ${res.workload_multiplier?.toFixed(3)}x | Career Factor: ${res.career_stage_multiplier?.toFixed(2)}x`
-            ],
-            relatedQuestions: [
-              `What are recommendations for ${targetEmpNo}?`,
-              `Show comprehensive research insights for ${targetEmpNo}`,
-              `Explain score for top researcher EMP0008`
-            ],
-            supportingData: { employee_no: targetEmpNo },
-            provider: 'gemini'
-          };
-        } catch (err: any) {
-          const msg = err?.message || String(err);
-          return {
-            answer: `Score explanation for faculty ${targetEmpNo} could not be generated: ${msg.includes('503') ? 'Gemini AI service is not configured in backend (set GEMINI_API_KEY in backend/.env).' : msg}`,
-            keyFindings: [
-              `Target faculty: ${targetEmpNo}`,
-              'Authoritative scores and ranks remain available directly in the Faculty Dossier.'
-            ],
-            supportingData: { employee_no: targetEmpNo },
-            provider: 'database'
-          };
-        }
-      } else {
-        // Query /ai/faculty/{employee_no}/insight
-        try {
-          const res = await fetchJson<any>(`/ai/faculty/${targetEmpNo}/insight`, {
-            method: 'POST'
-          });
-
-          return {
-            answer: res.summary,
-            keyFindings: [
-              ...(res.strengths || []).map((s: string) => `Accomplishment: ${s}`),
-              ...(res.areas_for_improvement || []).map((a: string) => `Growth Opportunity: ${a}`)
-            ],
-            evidence: (res.evidence || []).map(
-              (e: any) => `${e.metric}: ${e.value} — ${e.interpretation}`
-            ),
-            relatedQuestions: res.recommendations || [
-              `Explain score calculation for ${targetEmpNo}`,
-              `How does ${targetEmpNo} compare to department peers?`
-            ],
-            supportingData: { employee_no: targetEmpNo },
-            provider: 'gemini'
-          };
-        } catch (err: any) {
-          const msg = err?.message || String(err);
-          return {
-            answer: `Research insight for faculty ${targetEmpNo} could not be generated: ${msg.includes('503') ? 'Gemini AI service is not configured in backend (set GEMINI_API_KEY in backend/.env).' : msg}`,
-            keyFindings: [
-              `Target faculty: ${targetEmpNo}`,
-              'Deterministic scores, metrics, and evidence are available in the Faculty Dossier.'
-            ],
-            supportingData: { employee_no: targetEmpNo },
-            provider: 'database'
-          };
-        }
-      }
-    }
-
-    // 3. If no faculty member was identified in query, explain capabilities honestly
-    return {
-      answer: `The verified research intelligence AI engine operates strictly per-faculty to provide audit-verified, deterministic score explanations and productivity insights grounded in PostgreSQL data.\n\nPlease specify a faculty employee number (e.g., EMP0001 through EMP0024) or select a faculty member from the directory to analyze.`,
-      keyFindings: [
-        'Deterministic AI narrative endpoints: POST /api/v1/ai/faculty/{employee_no}/insight and explain-score',
-        'Evaluated against point-in-time benchmark: 2024-12-31',
-        'To analyze a researcher, try: "Explain score for EMP0001" or "What are recommendations for EMP0014?"'
-      ],
-      relatedQuestions: [
-        'Explain score for EMP0001 (Dr. Arvind Ramanathan)',
-        'Show insights and recommendations for EMP0014 (Dr. Sneha Patel)',
-        'Explain score for EMP0008 (Dr. Ramesh Rao)',
-        'Show insights for EMP0019 (Dr. Gayatri Mukherjee)'
-      ],
-      provider: 'database'
+    const payload = {
+      query: q,
+      faculty_employee_no: query.contextFacultyId || null,
+      department_code: query.contextDepartment || null
     };
+
+    const res = await fetchJson<any>('/ai/assistant', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    const rawEvidence: any[] = Array.isArray(res.evidence) ? res.evidence : [];
+    const evidenceItems: AssistantEvidenceItem[] = rawEvidence.map((e: any) => {
+      if (typeof e === 'string') {
+        return { metric: 'Evidence', value: e, source: 'Authoritative Analytics' };
+      }
+      return {
+        metric: e.metric || 'Metric',
+        value: e.value != null ? e.value : '',
+        source: e.source || 'Institutional Database'
+      };
+    });
+
+    const relatedFaculty: string[] = Array.isArray(res.related_faculty) ? res.related_faculty : [];
+    const relatedDepts: string[] = Array.isArray(res.related_departments) ? res.related_departments : [];
+
+    const supportingData: Record<string, unknown> = {};
+    if (relatedFaculty.length > 0) {
+      supportingData.employee_no = relatedFaculty[0];
+    }
+
+    // Dynamic suggested inquiries based on returned context
+    const followUps: string[] = [];
+    if (relatedFaculty.length > 0) {
+      followUps.push(`Explain score for ${relatedFaculty[0]}`);
+      followUps.push(`What are research recommendations for ${relatedFaculty[0]}?`);
+    }
+    if (relatedDepts.length >= 2) {
+      followUps.push(`Compare the performance between ${relatedDepts[0]} and ${relatedDepts[1]} departments`);
+    } else if (relatedDepts.length === 1) {
+      followUps.push(`What are the strongest research areas in ${relatedDepts[0]}?`);
+      followUps.push(`Show top faculty in ${relatedDepts[0]}`);
+    } else {
+      followUps.push('Compare the performance between CSE and BIO departments');
+      followUps.push('Who are the top 5 faculty members?');
+      followUps.push('Why does HSS use different research weights?');
+      followUps.push('Explain the score for EMP0002');
+    }
+
+    return {
+      query: res.query || q,
+      answer: res.answer || '',
+      evidence: evidenceItems,
+      related_faculty: relatedFaculty,
+      related_departments: relatedDepts,
+      disclaimer: res.disclaimer || 'AI-generated interpretation of deterministic institutional analytics.',
+      supportingData: Object.keys(supportingData).length > 0 ? supportingData : undefined,
+      relatedQuestions: Array.from(new Set(followUps)).slice(0, 4),
+      provider: 'groq'
+    };
+  },
+
+  // Direct faculty AI endpoints (preserved)
+  async getFacultyInsight(employeeNo: string): Promise<any> {
+    return fetchJson<any>(`/ai/faculty/${encodeURIComponent(employeeNo)}/insight`, {
+      method: 'POST'
+    });
+  },
+
+  async explainFacultyScore(employeeNo: string): Promise<any> {
+    return fetchJson<any>(`/ai/faculty/${encodeURIComponent(employeeNo)}/explain-score`, {
+      method: 'POST'
+    });
   }
 };
