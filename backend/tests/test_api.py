@@ -305,3 +305,31 @@ def test_20_client_cannot_override_analytics(client: TestClient):
     assert response.status_code == 200
     assert round(response.json()["final_score"], 1) == 16.3
     assert response.json()["department_rank"] == 6
+
+
+def test_21_scoring_engine_sql_psycopg_compatibility():
+    """Regression test: verify scoring_engine.sql has escaped comments and executes cleanly via psycopg3."""
+    import re
+    from pathlib import Path
+    from app.db import check_db_health, get_db_connection
+
+    sql_path = Path(__file__).resolve().parent.parent / "app" / "sql" / "scoring_engine.sql"
+    sql = sql_path.read_text(encoding="utf-8")
+
+    # 1. Static validation: verify only legitimate %s placeholders exist and all comment % are escaped as %%
+    placeholders = re.findall(r"(?<!%)%([^%])", sql)
+    assert placeholders == ["s"], f"Unexpected placeholders in SQL: {placeholders}"
+
+    # 2. Live database validation if PostgreSQL is reachable
+    health = check_db_health()
+    if health["status"] == "connected":
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, ("2024-12-31",))
+                rows = cur.fetchall()
+                assert len(rows) == 24, f"Expected 24 faculty records, got {len(rows)}"
+                scores = {r["employee_no"]: round(float(r["final_score"]), 1) for r in rows}
+                assert scores["EMP0002"] == 16.3
+                assert scores["EMP0003"] == 57.1
+                assert scores["EMP0007"] == 41.2
+                assert scores["EMP0014"] == 78.0

@@ -2,7 +2,7 @@
 -- AGENT 20 — STEP 3B DETERMINISTIC RESEARCH PRODUCTIVITY SCORING ENGINE
 -- Authoritative, deterministic, explainable, discipline-normalized,
 -- career-stage-aware, and workload-adjusted scoring model.
--- Parameterized for psycopg3 (%s::date) with default anchor '2024-12-31'.
+-- Parameterized for psycopg3 (%%s::date) with default anchor '2024-12-31'.
 -- Adapted directly from data/step3b_scoring_prototype.sql without formula alterations.
 -- ============================================================================
 
@@ -203,7 +203,7 @@ phd_scored AS (
 
 -- ----------------------------------------------------------------------------
 -- 7. WORKLOAD BURDEN & RECOGNITION MULTIPLIER (ISOLATED PRE-AGGREGATION)
--- Linear continuous ramp: 1.0 + (variance_pct / 100 * 0.15), capped at 1.15 (+15%).
+-- Linear continuous ramp: 1.0 + (variance_pct / 100 * 0.15), capped at 1.15 (+15%%).
 -- ----------------------------------------------------------------------------
 workload_agg AS (
     SELECT 
@@ -284,9 +284,9 @@ global_benchmarks AS (
 -- 10. DEPARTMENT BENCHMARKS & AUDITABLE DYNAMIC WEIGHTS
 -- Formulates and calculates exact, auditable weights per discipline:
 --   - If patents are active in department (CSE, MECH, BIO):
---       PUB = 35%, CIT = 25%, PAT = 15%, FUND = 15%, PHD = 10% (Sum = 1.000)
+--       PUB = 35%%, CIT = 25%%, PAT = 15%%, FUND = 15%%, PHD = 10%% (Sum = 1.000)
 --   - If patents are non-applicable (HSS, max_pat = 0):
---       PUB = 45%, CIT = 30%, PAT = 0%,  FUND = 15%, PHD = 10% (Sum = 1.000)
+--       PUB = 45%%, CIT = 30%%, PAT = 0%%,  FUND = 15%%, PHD = 10%% (Sum = 1.000)
 -- ----------------------------------------------------------------------------
 dept_benchmarks AS (
     SELECT 
@@ -458,4 +458,4 @@ SELECT
     sc.*,
     DENSE_RANK() OVER (PARTITION BY dept_code ORDER BY final_score DESC, total_pubs DESC) AS dept_rank,
     DENSE_RANK() OVER (ORDER BY final_score DESC, total_pubs DESC) AS inst_rank
-FROM scoring_calculated sc;
+FROM scoring_calculated sc
