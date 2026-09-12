@@ -10,7 +10,8 @@ This document establishes the official REST API contract for **Agent 20 (Researc
 - **Interactive Documentation**: `http://localhost:8000/docs` (OpenAPI / Swagger)
 - **Alternative Documentation**: `http://localhost:8000/redoc` (ReDoc)
 - **Default Content-Type**: `application/json`
-- **CORS Allowed Origins**: Configured via `.env` (`http://localhost:3000`, `http://localhost:5173`, etc.)
+- **CORS Allowed Origins**: Configured via `ALLOWED_ORIGINS` in `.env` (defaults: `http://localhost:3000`, `http://localhost:5173`, `http://localhost:4173`, `http://localhost:8080`, `http://127.0.0.1:3000`, `http://127.0.0.1:5173`, `http://127.0.0.1:4173`, `http://127.0.0.1:8080`)
+
 
 ---
 
@@ -92,6 +93,38 @@ Returns a paginated list of faculty members with calculated research scores.
 #### Response `200 OK`:
 ```json
 {
+  "items": [
+    {
+      "employee_no": "EMP0014",
+      "name": "Dr. Sneha Patel",
+      "department": "BIO",
+      "designation": "ASSISTANT_PROFESSOR",
+      "evaluation_date": "2024-12-31",
+      "experience_years": 3.0,
+      "final_score": 78.0,
+      "department_rank": 2,
+      "institution_rank": 6,
+      "components": {
+        "publication_quality": 100.0,
+        "citation_impact": 47.5,
+        "patents": 0.0,
+        "funding": 100.0,
+        "phd_supervision": 0.0
+      },
+      "context": {
+        "teaching_hours": 16.0,
+        "administrative_load": 0.0,
+        "workload_variance_pct": 33.3,
+        "workload_multiplier": 1.05,
+        "career_stage_multiplier": 1.20,
+        "combined_adjustment": 1.26
+      }
+    }
+  ],
+  "page": 1,
+  "page_size": 20,
+  "total": 24,
+  "total_pages": 2,
   "data": [
     {
       "employee_no": "EMP0014",
@@ -130,6 +163,9 @@ Returns a paginated list of faculty members with calculated research scores.
   }
 }
 ```
+> [!TIP]
+> The pagination response exposes convenience fields (`items`, `page`, `page_size`, `total`, `total_pages`) directly at the root, while preserving the legacy nested `data` and `pagination` blocks for maximum frontend flexibility.
+
 
 ---
 
