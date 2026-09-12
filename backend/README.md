@@ -38,12 +38,12 @@ backend/
 │   │   ├── faculty.py
 │   │   ├── rankings.py
 │   │   ├── department.py
-│   │   └── ai.py                # Gemini AI response & evidence schemas
+│   │   └── ai.py                # AI response & evidence schemas
 │   ├── repositories/            # SQL execution & row mapping
 │   │   └── analytics_repository.py
 │   ├── services/                # Business logic & response mapping
 │   │   ├── analytics_service.py
-│   │   └── gemini_service.py    # Gemini GenAI explanation & insight service
+│   │   └── groq_service.py      # Groq AI explanation & insight service
 │   └── routers/                 # REST API endpoints
 │       ├── health.py
 │       ├── faculty.py
@@ -53,7 +53,7 @@ backend/
 ├── tests/
 │   ├── conftest.py              # Test fixtures & mock datasets
 │   ├── test_api.py              # Step 1 API test suite (12 tests)
-│   └── test_ai.py               # Step 2 Gemini AI test suite (10 tests)
+│   └── test_ai.py               # Step 2 AI test suite (10 tests)
 ├── .env.example                 # Configuration template
 ├── requirements.txt             # Backend dependencies
 └── README.md

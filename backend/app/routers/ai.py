@@ -1,5 +1,5 @@
 """
-FastAPI router for Gemini AI research insight and score explanation endpoints.
+FastAPI router for AI research insight and score explanation endpoints.
 Enforces that deterministic numerical analytics are retrieved strictly from PostgreSQL.
 """
 
@@ -8,10 +8,10 @@ import logging
 from fastapi import APIRouter, HTTPException, Path, status
 from app.schemas.ai import AIInsightResponse, ScoreExplanationResponse
 from app.services.analytics_service import AnalyticsService
-from app.services.gemini_service import (
-    GeminiService,
-    GeminiServiceUnavailableError,
-    GeminiBadResponseError,
+from app.services.groq_service import (
+    GroqService,
+    GroqServiceUnavailableError,
+    GroqBadResponseError,
 )
 
 logger = logging.getLogger("agent20.router.ai")
@@ -19,7 +19,7 @@ logger = logging.getLogger("agent20.router.ai")
 router = APIRouter(prefix="/api/v1/ai", tags=["AI Insights"])
 
 _analytics_service = AnalyticsService()
-_gemini_service = GeminiService()
+_groq_service = GroqService()
 
 _EMPLOYEE_NO_PATTERN = re.compile(r"^[A-Za-z0-9_-]{3,20}$")
 
@@ -68,13 +68,13 @@ def get_faculty_insight(
 
     # 2. Generate structured AI explanation grounded strictly in the retrieved facts
     try:
-        return _gemini_service.generate_faculty_insight(faculty)
-    except GeminiServiceUnavailableError as exc:
+        return _groq_service.generate_faculty_insight(faculty)
+    except GroqServiceUnavailableError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=str(exc),
         ) from exc
-    except GeminiBadResponseError as exc:
+    except GroqBadResponseError as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=str(exc),
@@ -94,7 +94,7 @@ def get_faculty_insight(
     response_model=ScoreExplanationResponse,
     summary="Explain Deterministic Score and Ranking",
     description=(
-        "Combines authoritative PostgreSQL scores and ranks with Gemini-generated narrative "
+        "Combines authoritative PostgreSQL scores and ranks with AI-generated narrative "
         "explaining strongest/weakest pillars, context multipliers, and institutional standing."
     ),
 )
@@ -121,13 +121,13 @@ def explain_faculty_score(
 
     # 2. Generate narrative explanation and merge with authoritative numerical fields
     try:
-        return _gemini_service.explain_faculty_score(faculty)
-    except GeminiServiceUnavailableError as exc:
+        return _groq_service.explain_faculty_score(faculty)
+    except GroqServiceUnavailableError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=str(exc),
         ) from exc
-    except GeminiBadResponseError as exc:
+    except GroqBadResponseError as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=str(exc),

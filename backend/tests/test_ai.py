@@ -1,6 +1,6 @@
 """
-Unit tests for Gemini AI research insight and score explanation endpoints.
-Strictly mocks external Gemini API calls to ensure deterministic, quota-free execution.
+Unit tests for Groq AI research insight and score explanation endpoints.
+Strictly mocks external Groq API calls to ensure deterministic, quota-free execution.
 """
 
 import json
@@ -9,10 +9,10 @@ from unittest.mock import MagicMock
 from fastapi.testclient import TestClient
 
 from app.routers import ai as ai_router_mod
-from app.services.gemini_service import (
-    GeminiService,
-    GeminiServiceUnavailableError,
-    GeminiBadResponseError,
+from app.services.groq_service import (
+    GroqService,
+    GroqServiceUnavailableError,
+    GroqBadResponseError,
 )
 from app.services.analytics_service import AnalyticsService
 from tests.conftest import MockAnalyticsRepository
@@ -20,7 +20,7 @@ from tests.conftest import MockAnalyticsRepository
 
 @pytest.fixture(scope="module")
 def ai_client():
-    """TestClient configured with mock analytics repository and test-controlled Gemini service."""
+    """TestClient configured with mock analytics repository and test-controlled Groq service."""
     from app.main import app
     import app.db as db_mod
 
@@ -39,13 +39,13 @@ def ai_client():
     db_mod.init_db_pool = orig_init
 
 
-def test_01_ai_endpoint_missing_gemini_api_key(ai_client: TestClient):
-    """Verify AI endpoint returns controlled HTTP 503 when GEMINI_API_KEY is not configured."""
-    orig_key = ai_router_mod._gemini_service.settings.GEMINI_API_KEY
-    orig_client = ai_router_mod._gemini_service._client
+def test_01_ai_endpoint_missing_groq_api_key(ai_client: TestClient):
+    """Verify AI endpoint returns controlled HTTP 503 when GROQ_API_KEY is not configured."""
+    orig_key = ai_router_mod._groq_service.settings.GROQ_API_KEY
+    orig_client = ai_router_mod._groq_service._client
 
-    ai_router_mod._gemini_service.settings.GEMINI_API_KEY = None
-    ai_router_mod._gemini_service._client = None
+    ai_router_mod._groq_service.settings.GROQ_API_KEY = None
+    ai_router_mod._groq_service._client = None
 
     try:
         response = ai_client.post("/api/v1/ai/faculty/EMP0014/insight")
@@ -54,8 +54,8 @@ def test_01_ai_endpoint_missing_gemini_api_key(ai_client: TestClient):
         assert "detail" in data
         assert "not configured" in data["detail"].lower()
     finally:
-        ai_router_mod._gemini_service.settings.GEMINI_API_KEY = orig_key
-        ai_router_mod._gemini_service._client = orig_client
+        ai_router_mod._groq_service.settings.GROQ_API_KEY = orig_key
+        ai_router_mod._groq_service._client = orig_client
 
 
 def test_02_ai_faculty_not_found(ai_client: TestClient):
@@ -73,8 +73,8 @@ def test_03_ai_invalid_employee_no_format(ai_client: TestClient):
 
 
 def test_04_successful_ai_faculty_insight(ai_client: TestClient):
-    """Verify successful faculty insight response with mocked Gemini client."""
-    mock_gemini_response = {
+    """Verify successful faculty insight response with mocked Groq client."""
+    mock_groq_response = {
         "summary": "Dr. Sneha Patel demonstrates exceptional research velocity in Biotechnology.",
         "strengths": [
             "100% placement of publications in Q1 and Q2 indexed venues (9 total papers).",
@@ -102,12 +102,14 @@ def test_04_successful_ai_faculty_insight(ai_client: TestClient):
     }
 
     mock_client = MagicMock()
-    mock_model_response = MagicMock()
-    mock_model_response.text = json.dumps(mock_gemini_response)
-    mock_client.models.generate_content.return_value = mock_model_response
+    mock_choice = MagicMock()
+    mock_choice.message.content = json.dumps(mock_groq_response)
+    mock_response = MagicMock()
+    mock_response.choices = [mock_choice]
+    mock_client.chat.completions.create.return_value = mock_response
 
     # Inject mock client into service
-    ai_router_mod._gemini_service = GeminiService(client=mock_client)
+    ai_router_mod._groq_service = GroqService(client=mock_client)
 
     response = ai_client.post("/api/v1/ai/faculty/EMP0014/insight")
     assert response.status_code == 200
@@ -129,7 +131,7 @@ def test_04_successful_ai_faculty_insight(ai_client: TestClient):
 def test_05_successful_ai_score_explanation(ai_client: TestClient):
     """
     Verify explain-score endpoint combines authoritative PostgreSQL numerical fields
-    with validated Gemini narrative explanations.
+    with validated Groq narrative explanations.
     """
     mock_explanation_response = {
         "score_band_summary": "High-velocity research performance band with strong publication rigor.",
@@ -147,11 +149,13 @@ def test_05_successful_ai_score_explanation(ai_client: TestClient):
     }
 
     mock_client = MagicMock()
-    mock_model_response = MagicMock()
-    mock_model_response.text = json.dumps(mock_explanation_response)
-    mock_client.models.generate_content.return_value = mock_model_response
+    mock_choice = MagicMock()
+    mock_choice.message.content = json.dumps(mock_explanation_response)
+    mock_response = MagicMock()
+    mock_response.choices = [mock_choice]
+    mock_client.chat.completions.create.return_value = mock_response
 
-    ai_router_mod._gemini_service = GeminiService(client=mock_client)
+    ai_router_mod._groq_service = GroqService(client=mock_client)
 
     response = ai_client.post("/api/v1/ai/faculty/EMP0014/explain-score")
     assert response.status_code == 200
@@ -173,33 +177,35 @@ def test_05_successful_ai_score_explanation(ai_client: TestClient):
     assert data["workload_multiplier"] == 1.05
     assert data["combined_adjustment"] == 1.26
 
-    # Validated narrative fields from Gemini
+    # Validated narrative fields from Groq
     assert "High-velocity" in data["score_band_summary"]
     assert len(data["strongest_pillars"]) == 1
     assert "Career-stage" in data["workload_and_context_impact"]
     assert "disclaimer" in data
 
 
-def test_06_ai_malformed_gemini_json_returns_502(ai_client: TestClient):
-    """Verify malformed JSON from Gemini returns a controlled HTTP 502 Bad Gateway."""
+def test_06_ai_malformed_groq_json_returns_502(ai_client: TestClient):
+    """Verify malformed JSON from Groq returns a controlled HTTP 502 Bad Gateway."""
     mock_client = MagicMock()
-    mock_model_response = MagicMock()
-    mock_model_response.text = "NOT_A_VALID_JSON_STRING {{{[[["
-    mock_client.models.generate_content.return_value = mock_model_response
+    mock_choice = MagicMock()
+    mock_choice.message.content = "NOT_A_VALID_JSON_STRING {{{[[["
+    mock_response = MagicMock()
+    mock_response.choices = [mock_choice]
+    mock_client.chat.completions.create.return_value = mock_response
 
-    ai_router_mod._gemini_service = GeminiService(client=mock_client)
+    ai_router_mod._groq_service = GroqService(client=mock_client)
 
     response = ai_client.post("/api/v1/ai/faculty/EMP0003/insight")
     assert response.status_code == 502
     assert "invalid insight structure" in response.json()["detail"].lower()
 
 
-def test_07_ai_gemini_timeout_returns_503(ai_client: TestClient):
-    """Verify network/timeout errors from Gemini return controlled HTTP 503."""
+def test_07_ai_groq_timeout_returns_503(ai_client: TestClient):
+    """Verify network/timeout errors from Groq return controlled HTTP 503."""
     mock_client = MagicMock()
-    mock_client.models.generate_content.side_effect = TimeoutError("Connection to Google GenAI timed out")
+    mock_client.chat.completions.create.side_effect = TimeoutError("Connection to Groq timed out")
 
-    ai_router_mod._gemini_service = GeminiService(client=mock_client)
+    ai_router_mod._groq_service = GroqService(client=mock_client)
 
     response = ai_client.post("/api/v1/ai/faculty/EMP0003/insight")
     assert response.status_code == 503
@@ -207,10 +213,10 @@ def test_07_ai_gemini_timeout_returns_503(ai_client: TestClient):
 
 
 def test_08_ai_prompt_uses_deterministic_data(ai_client: TestClient):
-    """Verify Gemini prompt receives authoritative deterministic metrics from analytics service."""
+    """Verify Groq prompt receives authoritative deterministic metrics from analytics service."""
     mock_client = MagicMock()
-    mock_model_response = MagicMock()
-    mock_model_response.text = json.dumps({
+    mock_choice = MagicMock()
+    mock_choice.message.content = json.dumps({
         "summary": "Dr. Ananya Sharma shows high research quality.",
         "strengths": ["All 4 publications in Q1 journals."],
         "areas_for_improvement": ["No patents."],
@@ -219,64 +225,70 @@ def test_08_ai_prompt_uses_deterministic_data(ai_client: TestClient):
             {"metric": "Final Score", "value": 57.1, "interpretation": "Strong early-career score."}
         ],
     })
-    mock_client.models.generate_content.return_value = mock_model_response
+    mock_response = MagicMock()
+    mock_response.choices = [mock_choice]
+    mock_client.chat.completions.create.return_value = mock_response
 
-    ai_router_mod._gemini_service = GeminiService(client=mock_client)
+    ai_router_mod._groq_service = GroqService(client=mock_client)
 
     response = ai_client.post("/api/v1/ai/faculty/EMP0003/insight")
     assert response.status_code == 200
 
-    # Inspect the prompt that was sent to Gemini
-    called_args = mock_client.models.generate_content.call_args
-    prompt_contents = called_args.kwargs["contents"]
+    # Inspect the messages that were sent to Groq
+    called_args = mock_client.chat.completions.create.call_args
+    messages = called_args.kwargs["messages"]
+    user_prompt = next(m["content"] for m in messages if m["role"] == "user")
 
-    # Verify that authoritative PostgreSQL data for EMP0003 was passed to Gemini
-    assert "EMP0003" in prompt_contents
-    assert "57.1" in prompt_contents  # Authoritative final score
-    assert "45.3" in prompt_contents  # Authoritative base score
-    assert "CSE" in prompt_contents
-    assert "1.2" in prompt_contents   # Career stage multiplier
+    # Verify that authoritative PostgreSQL data for EMP0003 was passed to Groq
+    assert "EMP0003" in user_prompt
+    assert "57.1" in user_prompt  # Authoritative final score
+    assert "45.3" in user_prompt  # Authoritative base score
+    assert "CSE" in user_prompt
+    assert "1.2" in user_prompt   # Career stage multiplier
 
 
 def test_09_client_cannot_override_final_score(ai_client: TestClient):
     """Verify that client cannot supply, alter, or override the final score."""
     mock_client = MagicMock()
-    mock_model_response = MagicMock()
-    mock_model_response.text = json.dumps({
+    mock_choice = MagicMock()
+    mock_choice.message.content = json.dumps({
         "summary": "Summary text",
         "strengths": ["Strength 1"],
         "areas_for_improvement": ["Improvement 1"],
         "recommendations": ["Recommendation 1"],
         "evidence": [{"metric": "Score", "value": 16.3, "interpretation": "Low volume"}],
     })
-    mock_client.models.generate_content.return_value = mock_model_response
+    mock_response = MagicMock()
+    mock_response.choices = [mock_choice]
+    mock_client.chat.completions.create.return_value = mock_response
 
-    ai_router_mod._gemini_service = GeminiService(client=mock_client)
+    ai_router_mod._groq_service = GroqService(client=mock_client)
 
     # Attempt to send client-injected numerical score via JSON body
     tampered_payload = {"final_score": 99.9, "department_rank": 1}
     response = ai_client.post("/api/v1/ai/faculty/EMP0002/insight", json=tampered_payload)
     assert response.status_code == 200
 
-    # Verify prompt sent to Gemini used the authoritative database score (16.3), ignoring client input
-    prompt_contents = mock_client.models.generate_content.call_args.kwargs["contents"]
-    assert "16.3" in prompt_contents
-    assert "99.9" not in prompt_contents
+    # Verify prompt sent to Groq used the authoritative database score (16.3), ignoring client input
+    messages = mock_client.chat.completions.create.call_args.kwargs["messages"]
+    user_prompt = next(m["content"] for m in messages if m["role"] == "user")
+    assert "16.3" in user_prompt
+    assert "99.9" not in user_prompt
 
 
 def test_10_api_key_never_exposed_in_response(ai_client: TestClient):
     """Verify secret API keys are never leaked in responses or error payloads."""
-    secret_key = "AIzaSySecretTestKeyNotForOutput12345"
-    orig_key = ai_router_mod._gemini_service.settings.GEMINI_API_KEY
-    ai_router_mod._gemini_service.settings.GEMINI_API_KEY = secret_key
+    secret_key = "gsk_SecretTestKeyNotForOutput12345"
+    orig_key = ai_router_mod._groq_service.settings.GROQ_API_KEY
+    ai_router_mod._groq_service.settings.GROQ_API_KEY = secret_key
 
     try:
         mock_client = MagicMock()
-        mock_client.models.generate_content.side_effect = Exception(f"Failed with key {secret_key}")
-        ai_router_mod._gemini_service = GeminiService(client=mock_client)
+        mock_client.chat.completions.create.side_effect = Exception(f"Failed with key {secret_key}")
+        ai_router_mod._groq_service = GroqService(client=mock_client)
 
         response = ai_client.post("/api/v1/ai/faculty/EMP0014/insight")
         # Response content must NOT contain the secret API key
         assert secret_key not in response.text
     finally:
-        ai_router_mod._gemini_service.settings.GEMINI_API_KEY = orig_key
+        ai_router_mod._groq_service.settings.GROQ_API_KEY = orig_key

@@ -25,20 +25,20 @@ class Settings(BaseSettings):
         description="Default point-in-time evaluation date for scoring calculations",
     )
 
-    # Gemini AI Service Configuration
-    GEMINI_API_KEY: Optional[str] = Field(
+    # Groq AI Service Configuration
+    GROQ_API_KEY: Optional[str] = Field(
         default=None,
-        description="Google Gemini API Key (keep in .env, never commit)",
+        description="Groq API Key (keep in .env, never commit)",
     )
-    GEMINI_MODEL: str = Field(
-        default="gemini-2.0-flash",
-        description="Google Gemini Model ID (e.g., gemini-2.0-flash, gemini-1.5-flash)",
+    GROQ_MODEL: str = Field(
+        default="groq/compound-mini",
+        description="Groq Model ID (e.g., groq/compound-mini)",
     )
-    GEMINI_TIMEOUT: float = Field(
-        default=30.0,
-        description="Timeout in seconds for Gemini API requests",
+    GROQ_TIMEOUT_SECONDS: float = Field(
+        default=15.0,
+        description="Timeout in seconds for Groq API requests",
     )
-    GEMINI_MAX_OUTPUT_TOKENS: int = Field(
+    GROQ_MAX_OUTPUT_TOKENS: int = Field(
         default=2048,
         description="Maximum output tokens for generated explanations",
     )

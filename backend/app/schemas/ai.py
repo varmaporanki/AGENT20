@@ -1,5 +1,5 @@
 """
-Pydantic schemas for Gemini AI research insight and score explanation responses.
+Pydantic schemas for AI research insight and score explanation responses.
 Guarantees strict separation between deterministic numerical analytics and AI narratives.
 """
 
@@ -44,7 +44,7 @@ class ScoreExplanationResponse(BaseModel):
     """
     Detailed analytical breakdown explaining how the deterministic research score was attained.
     Authoritative numerical fields originate from PostgreSQL / Step 3B;
-    narrative explanation fields originate from Gemini.
+    narrative explanation fields originate from AI provider.
     """
 
     # --- Authoritative Deterministic Numerical Fields (From PostgreSQL / Step 3B) ---
@@ -64,7 +64,7 @@ class ScoreExplanationResponse(BaseModel):
     career_stage_multiplier: float = Field(description="Career-stage startup equity factor (1.00 - 1.20)")
     combined_adjustment: float = Field(description="Combined context factor clamped to max 1.30")
 
-    # --- Validated AI Narrative Fields (From Gemini) ---
+    # --- Validated AI Narrative Fields ---
     score_band_summary: str = Field(description="Narrative explaining the performance tier and score context")
     strongest_pillars: List[str] = Field(description="Narrative explanation of the highest performing pillars")
     weakest_pillars: List[str] = Field(description="Narrative explanation of the lowest performing or inactive pillars")
@@ -78,11 +78,11 @@ class ScoreExplanationResponse(BaseModel):
 
 
 # -----------------------------------------------------------------------------
-# Internal Pydantic Schemas for Validating Raw Gemini Output
+# Internal Pydantic Schemas for Validating Raw AI Provider Output
 # -----------------------------------------------------------------------------
 
-class GeminiInsightPayload(BaseModel):
-    """Internal validation model for Gemini insight JSON output."""
+class AIInsightPayload(BaseModel):
+    """Internal validation model for AI insight JSON output."""
 
     summary: str
     strengths: List[str]
@@ -91,8 +91,8 @@ class GeminiInsightPayload(BaseModel):
     evidence: List[EvidenceItem]
 
 
-class GeminiScoreExplanationPayload(BaseModel):
-    """Internal validation model for Gemini score explanation JSON output."""
+class AIScoreExplanationPayload(BaseModel):
+    """Internal validation model for AI score explanation JSON output."""
 
     score_band_summary: str
     strongest_pillars: List[str]
