@@ -163,6 +163,7 @@ export interface AssistantResponse {
   supportingData?: Record<string, unknown>;
   relatedQuestions?: string[];
   evidence?: string[];
+  provider?: string;
 }
 
 export interface FacultyFilterParams {

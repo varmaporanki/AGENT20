@@ -95,9 +95,18 @@ export function App() {
           <>
             {activeTab === 'dashboard' && (
               <Dashboard
+                activeTab={activeTab}
                 onSelectFaculty={handleSelectFaculty}
                 onSelectDepartment={handleSelectDepartment}
-                onNavigateTab={(tab) => setActiveTab(tab)}
+                onNavigateTab={(tab) => {
+                  if (tab === 'methodology') {
+                    setMethodologyOpen(true);
+                  } else {
+                    setActiveTab(tab);
+                    setSelectedFacultyEmpNo(null);
+                  }
+                }}
+                onOpenMethodology={() => setMethodologyOpen(true)}
                 onOpenAssistantWithPrompt={handleOpenAssistantWithPrompt}
               />
             )}

@@ -9,7 +9,7 @@ This document details the mathematical, bibliometric, and statistical design of 
 The primary objective of the Agent 20 Scoring Engine is to provide an **objective, deterministic, explainable, and audit-ready** evaluation of faculty research performance on a continuous **0–100 scale**.
 
 ### Key Architectural Principles:
-1. **Deterministic Calculation**: All numerical scores are computed deterministically via relational algebra in PostgreSQL. The Large Language Model (Gemini) **never calculates or hallucinates numerical scores**; its role in downstream steps is strictly to synthesize human-readable narratives grounded in structured calculation evidence.
+1. **Deterministic Calculation**: All numerical scores are computed deterministically via relational algebra in PostgreSQL. The Large Language Model (Groq/OpenAI) **never calculates or hallucinates numerical scores**; its role in downstream steps is strictly to synthesize human-readable narratives grounded in structured calculation evidence.
 2. **Reproducible Evaluation Date**: All date-sensitive metrics (faculty experience, career stage eligibility, point-in-time citation snapshots, and annual momentum) are calculated relative to a single configurable parameter: `DATE '2024-12-31'`.
 3. **Discipline-Specific Dynamic Weights**: Weight allocations are dynamically adjusted when a discipline lacks a structural research output (such as patents in Humanities & Social Sciences), guaranteeing an auditable 100% composite scale across every department.
 4. **Quality Over Quantity**: Publication volume is heavily subordinated to venue quartile rigor, indexing status, and verified author contribution.

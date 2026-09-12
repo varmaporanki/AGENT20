@@ -40,11 +40,24 @@ class AssistantQueryRequest(BaseModel):
     contextFacultyId: Optional[str] = None
     contextDepartment: Optional[str] = None
 
+from .ai_provider import ai_service
+
 # Health check
 @app.get("/health")
 @app.get("/api/v1/health")
 def health_check():
-    return {"status": "ok", "service": "Agent 20 Backend API", "database": "acadagents"}
+    return {
+        "status": "ok",
+        "service": "Agent 20 Backend API",
+        "database": "acadagents",
+        "ai": ai_service.get_status()
+    }
+
+# Safe AI Provider Observability (No secrets, no live token burn)
+@app.get("/ai/status")
+@app.get("/api/v1/ai/status")
+def api_ai_status():
+    return ai_service.get_status()
 
 # 1. Institution Overview
 @app.get("/institution/overview")

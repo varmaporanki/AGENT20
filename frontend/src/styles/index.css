@@ -271,130 +271,160 @@ button {
   transform: translateY(-1px) scale(0.995);
 }
 
-/* Institutional Header Styling - STRICT PRESERVATION of layout & dimensions */
+/* ==========================================================================
+   Institutional Header Styling — Reference Match (Vignan's University Style)
+   3-Zone Balanced Architecture:
+   - Left: Institutional identity + ESTD + NAAC/NIRF ranking stamp
+   - Center: Viewport-Centered "DEPARTMENT OF CSE PRESENTS / AGENT 20 / RESEARCH INTELLIGENCE"
+   - Right: Accreditation circles (NAAC, NIRF, NBA, ABET, UGC) + System Status + Ask AI
+   ========================================================================== */
 .header-container {
-  height: var(--header-height);
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  height: 74px;
+  background: #ffffff;
   border-bottom: 1px solid var(--border-light);
   position: sticky;
   top: 0;
   z-index: 100;
   box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.02);
-  transition: box-shadow 0.2s ease;
 }
 
-.header-content {
-  max-width: var(--max-width);
-  margin: 0 auto;
+.header-grid {
+  width: 100%;
   height: 100%;
   padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
 }
 
+/* --- Left Zone: Official Vignan's Institutional Identity & Descriptors --- */
 .header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  z-index: 2;
+  flex-shrink: 0;
 }
 
-.institution-crest {
-  width: 44px;
-  height: 44px;
-  background: linear-gradient(135deg, #0a192f 0%, #1e3a8a 100%);
-  border-radius: 11px;
+.vignans-logo-container {
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  font-weight: 800;
-  font-family: var(--font-display);
-  font-size: 16px;
-  box-shadow: 0 4px 12px rgba(10, 25, 47, 0.22), inset 0 1px 1px rgba(255, 255, 255, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: transform 0.22s var(--ease-spring), box-shadow 0.22s var(--ease-spring);
+  flex-shrink: 0;
 }
 
-.institution-crest:hover {
-  transform: translateY(-1px) scale(1.03);
-  box-shadow: 0 6px 16px rgba(10, 25, 47, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+.vignans-header-logo {
+  height: 44px;
+  max-height: 44px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.04));
+  transition: transform 0.2s var(--ease-spring);
 }
 
-.institution-details {
+.vignans-header-logo:hover {
+  transform: translateY(-1px) scale(1.01);
+}
+
+.vignans-header-divider {
+  width: 1px;
+  height: 32px;
+  background: #e2e8f0;
+  margin: 0 4px;
+}
+
+.vignans-descriptor-block {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  gap: 1.5px;
 }
 
-.institution-name {
-  font-size: 14px;
-  font-weight: 700;
+.vignans-descriptor-title {
+  font-size: 11.5px;
+  font-weight: 800;
   color: var(--text-primary);
   letter-spacing: -0.01em;
-  white-space: nowrap;
-}
-
-.institution-subtext {
-  font-size: 11px;
-  color: var(--text-muted);
-  font-weight: 500;
+  line-height: 1.2;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
+.vignans-descriptor-office {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--color-blue);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+/* --- Center Zone: Exactly Viewport-Centered Event/Product Identity --- */
 .header-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  pointer-events: auto;
+  z-index: 5;
+  white-space: nowrap;
 }
 
-.header-tagline-small {
+.center-eyebrow {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.center-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.center-main-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  margin: 0;
+  line-height: 1;
+}
+
+.center-pill-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
   font-weight: 700;
   color: var(--color-blue);
-  letter-spacing: 0.16em;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  padding: 2.5px 9px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.header-title-main {
-  font-size: 17px;
-  font-weight: 800;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.header-badge {
-  background: var(--bg-accent-light);
-  color: var(--color-blue);
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2.5px 9px;
-  border-radius: 12px;
-  letter-spacing: 0.04em;
-  border: 1px solid rgba(147, 197, 253, 0.6);
-  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.06);
-  transition: all 0.2s ease;
-}
-
-.header-badge:hover {
-  border-color: var(--color-blue-bright);
-  background: #dbeafe;
-}
-
+/* --- Right Zone: Platform & System Status Controls Cluster --- */
 .header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  z-index: 2;
+  flex-shrink: 0;
 }
 
-.header-accreditation {
+.platform-status-cluster {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -424,6 +454,32 @@ button {
   color: #065f46;
   border-color: #a7f3d0;
   box-shadow: 0 1px 4px rgba(5, 150, 105, 0.1);
+}
+
+.header-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+  transition: all 0.18s ease;
+}
+
+.header-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.header-action-btn:active {
+  transform: translateY(0);
 }
 
 /* Secondary Navigation Bar */
@@ -490,6 +546,261 @@ button {
   margin: 0 auto;
   padding: 24px;
   flex: 1;
+}
+
+/* ==========================================================================
+   Spatial 3D Navigation Ecosystem — Three.js WebGL + Screen-Projected DOM
+   ========================================================================== */
+.spatial-ecosystem-wrapper {
+  position: relative;
+  width: 100%;
+  border-radius: 24px;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 45%, #eff6ff 0%, #dbeafe 35%, #bfdbfe 70%, #93c5fd 100%);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 
+    inset 0 2px 2px 0 rgba(255, 255, 255, 1),
+    inset 0 0 100px rgba(147, 197, 253, 0.45),
+    0 20px 50px -10px rgba(37, 99, 235, 0.16);
+  margin-bottom: 28px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.spatial-ecosystem-wrapper:hover {
+  border-color: rgba(96, 165, 250, 1);
+  box-shadow: 
+    inset 0 2px 2px 0 rgba(255, 255, 255, 1),
+    inset 0 0 120px rgba(96, 165, 250, 0.55),
+    0 24px 56px -8px rgba(37, 99, 235, 0.22);
+}
+
+.spatial-canvas-viewport {
+  width: 100%;
+  height: 480px;
+  display: block;
+  cursor: default;
+}
+
+/* Screen-Projected Floating HTML Labels tracking 3D node vectors */
+.spatial-projected-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 480px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.floating-spatial-node {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: auto;
+  cursor: pointer;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 12px;
+  border: 1.5px solid rgba(203, 213, 225, 0.7);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+  transition: transform 0.2s var(--ease-spring), border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  user-select: none;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.floating-spatial-node:hover,
+.floating-spatial-node.hovered {
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(37, 99, 235, 0.22), 0 0 0 2px rgba(59, 130, 246, 0.3);
+  z-index: 20;
+}
+
+.floating-spatial-node.active {
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4), 0 8px 24px rgba(37, 99, 235, 0.2);
+}
+
+.floating-spatial-node.core-node {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.96);
+  border-width: 2px;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.16), 0 0 20px rgba(59, 130, 246, 0.2);
+}
+
+.floating-spatial-node.core-node:hover {
+  box-shadow: 0 12px 32px rgba(37, 99, 235, 0.3), 0 0 28px rgba(59, 130, 246, 0.4);
+}
+
+.floating-node-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.floating-node-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  box-shadow: 0 0 6px currentColor;
+}
+
+.floating-node-title {
+  font-size: 10.5px;
+  font-weight: 800;
+}
+
+.floating-node-sub {
+  font-size: 9.5px;
+  color: #64748b;
+  font-weight: 600;
+  margin-top: 1.5px;
+  letter-spacing: 0.01em;
+}
+
+/* Spatial HUD Tooltip */
+.spatial-hud-tooltip {
+  position: absolute;
+  bottom: 60px;
+  left: 24px;
+  max-width: 320px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 12px;
+  border: 1.5px solid #3b82f6;
+  padding: 12px 16px;
+  z-index: 25;
+  pointer-events: none;
+  animation: hudFadeIn 0.2s ease-out;
+}
+
+.hud-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.hud-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 2px;
+  letter-spacing: -0.01em;
+}
+
+.hud-subtitle {
+  font-size: 11.5px;
+  color: #475569;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.hud-action {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* Accessible DOM Dock for Keyboard & Screen Readers */
+.spatial-accessibility-dock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(248, 250, 252, 0.92);
+  border-top: 1px solid #e2e8f0;
+  position: relative;
+  z-index: 15;
+}
+
+.spatial-access-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #334155;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.15s ease;
+}
+
+.spatial-access-btn:hover,
+.spatial-access-btn:focus {
+  background: #eff6ff;
+  color: #1d4ed8;
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+  transform: translateY(-1px);
+}
+
+.spatial-access-btn.focused {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #2563eb;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.webgl-fallback-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  color: #64748b;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+@keyframes hudFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* WebGL Hero Canvas Container - Rich Layered Atmosphere */
@@ -1194,6 +1505,13 @@ button {
 }
 
 /* Responsive Media Queries */
+@media (max-width: 1200px) {
+  .vignans-descriptor-block,
+  .vignans-header-divider {
+    display: none;
+  }
+}
+
 @media (max-width: 1024px) {
   .floating-kpi-container {
     grid-template-columns: repeat(3, 1fr);
@@ -1207,14 +1525,58 @@ button {
 }
 
 @media (max-width: 768px) {
-  .header-content {
-    padding: 0 16px;
+  .header-container {
+    height: auto;
+    min-height: 64px;
+    padding: 6px 0;
   }
-  .institution-name {
+  .header-grid {
+    padding: 0 12px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .header-center {
+    position: static;
+    transform: none;
+    order: -1;
+    width: 100%;
+    margin-bottom: 2px;
+  }
+  .header-left {
+    gap: 8px;
+  }
+  .vignans-header-logo {
+    height: 36px;
+    max-height: 36px;
+  }
+  .vignans-descriptor-block,
+  .vignans-header-divider {
     display: none;
   }
-  .hero-webgl-wrapper {
-    height: 420px;
+  .header-right {
+    gap: 6px;
+  }
+  .platform-status-cluster .badge-pill:first-child {
+    display: none;
+  }
+  .spatial-canvas-viewport {
+    height: 380px;
+  }
+  .spatial-projected-layer {
+    height: 380px;
+  }
+  .floating-spatial-node {
+    padding: 4px 8px;
+  }
+  .floating-node-sub {
+    display: none;
+  }
+  .spatial-hud-tooltip {
+    left: 12px;
+    right: 12px;
+    bottom: 52px;
+    max-width: calc(100% - 24px);
   }
   .floating-kpi-container {
     grid-template-columns: repeat(2, 1fr);
@@ -1229,3 +1591,5 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+

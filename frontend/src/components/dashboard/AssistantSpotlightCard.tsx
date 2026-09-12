@@ -42,7 +42,7 @@ export const AssistantSpotlightCard: React.FC<AssistantSpotlightCardProps> = ({
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 12, background: 'rgba(239, 246, 255, 0.9)', borderColor: '#bfdbfe' }} className="badge-pill">
               <Sparkles size={13} color="#2563eb" />
               <span style={{ color: '#2563eb', fontWeight: 700, letterSpacing: '0.04em' }}>
-                AI RESEARCH ASSISTANT (GEMINI INTEGRATION)
+                AI RESEARCH ASSISTANT (GROQ + OPENAI FALLBACK)
               </span>
             </div>
             <h2 style={{ fontSize: 23, color: 'var(--text-primary)', marginBottom: 10, letterSpacing: '-0.02em', lineHeight: 1.3 }}>

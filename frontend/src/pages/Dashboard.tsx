@@ -13,14 +13,18 @@ interface DashboardProps {
   onSelectFaculty: (empNo: string) => void;
   onSelectDepartment: (code: string) => void;
   onNavigateTab: (tab: any) => void;
+  onOpenMethodology?: () => void;
   onOpenAssistantWithPrompt?: (prompt: string) => void;
+  activeTab?: string;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
   onSelectFaculty,
   onSelectDepartment,
   onNavigateTab,
-  onOpenAssistantWithPrompt
+  onOpenMethodology,
+  onOpenAssistantWithPrompt,
+  activeTab = 'dashboard'
 }) => {
   const [overview, setOverview] = useState<InstitutionOverview | null>(null);
   const [facultyList, setFacultyList] = useState<FacultyMember[]>([]);
@@ -110,6 +114,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
           departments={departments}
           onSelectFaculty={onSelectFaculty}
           onSelectDepartment={onSelectDepartment}
+          onNavigateTab={onNavigateTab}
+          onOpenMethodology={onOpenMethodology}
+          activeTab={activeTab}
         />
       </div>
 

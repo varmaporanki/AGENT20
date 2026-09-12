@@ -11,7 +11,7 @@ Agent 20 evaluates and benchmarks faculty research performance across publicatio
 * **Database Engine**: PostgreSQL 16
 * **Database Name**: `acadagents`
 * **Schema Topology**: 21 relational schemas (`core`, `people`, `research`, `hr`, `academics`, `governance`, `curriculum`, `identity`, `agentops`, etc.)
-* **Design Philosophy**: Deterministic analytics computed in relational SQL; LLM (Gemini) strictly generates evidence-grounded narratives from structured SQL evaluation records without calculating or inventing scores.
+* **Design Philosophy**: Deterministic analytics computed in relational SQL; LLM (Groq / OpenAI fallback) strictly generates evidence-grounded narratives from structured SQL evaluation records without calculating or inventing scores.
 
 ---
 

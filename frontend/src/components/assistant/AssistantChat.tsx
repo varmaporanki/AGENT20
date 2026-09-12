@@ -11,6 +11,7 @@ interface ChatMessage {
   evidence?: string[];
   supportingData?: Record<string, unknown>;
   relatedQuestions?: string[];
+  provider?: string;
   timestamp: string;
 }
 
@@ -89,6 +90,7 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
         evidence: response.evidence,
         supportingData: response.supportingData,
         relatedQuestions: response.relatedQuestions,
+        provider: response.provider,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
@@ -178,20 +180,40 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
               )}
 
               {/* Supporting Data Link */}
-              {msg.supportingData && (
-                <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  {typeof msg.supportingData.employee_no === 'string' && onSelectFaculty && (
-                    <button
-                      onClick={() => onSelectFaculty(msg.supportingData?.employee_no as string)}
-                      className="chip-btn"
-                      style={{ background: '#fff', borderColor: '#2563eb', color: '#2563eb', fontWeight: 700 }}
-                    >
-                      Open {msg.supportingData.employee_no} Dossier →
-                    </button>
-                  )}
-                  <span style={{ fontSize: 10.5, color: '#94a3b8' }}>{msg.timestamp}</span>
+              {msg.supportingData && typeof msg.supportingData.employee_no === 'string' && onSelectFaculty && (
+                <div style={{ marginTop: 12 }}>
+                  <button
+                    onClick={() => onSelectFaculty(msg.supportingData?.employee_no as string)}
+                    className="chip-btn"
+                    style={{ background: '#fff', borderColor: '#2563eb', color: '#2563eb', fontWeight: 700 }}
+                  >
+                    Open {msg.supportingData.employee_no} Dossier →
+                  </button>
                 </div>
               )}
+
+              {/* Message Footer: Provider Badge + Timestamp */}
+              <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <div>
+                  {msg.provider && (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: '0.04em',
+                        padding: '2px 8px',
+                        borderRadius: 6,
+                        background: msg.provider === 'groq' ? 'rgba(249, 115, 22, 0.08)' : msg.provider === 'openai' ? 'rgba(5, 150, 105, 0.08)' : 'rgba(100, 116, 139, 0.08)',
+                        color: msg.provider === 'groq' ? '#ea580c' : msg.provider === 'openai' ? '#059669' : '#64748b',
+                        border: `1px solid ${msg.provider === 'groq' ? 'rgba(249, 115, 22, 0.2)' : msg.provider === 'openai' ? 'rgba(5, 150, 105, 0.2)' : 'rgba(100, 116, 139, 0.2)'}`
+                      }}
+                    >
+                      ⚡ {msg.provider === 'groq' ? 'Groq' : msg.provider === 'openai' ? 'OpenAI Fallback' : 'Database Direct'}
+                    </span>
+                  )}
+                </div>
+                <span style={{ fontSize: 10.5, color: '#94a3b8' }}>{msg.timestamp}</span>
+              </div>
 
               {/* Related Questions Chips */}
               {msg.relatedQuestions && msg.relatedQuestions.length > 0 && (
