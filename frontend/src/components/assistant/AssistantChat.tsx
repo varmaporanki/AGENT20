@@ -106,7 +106,7 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
       const errorMsg: ChatMessage = {
         id: 'ai-err-' + Date.now(),
         sender: 'assistant',
-        text: `Unable to synthesize research intelligence: ${err?.message || 'Server error'}.\n\nPlease ensure the backend service at http://localhost:8000/api/v1 is online and GROQ_API_KEY is configured.`,
+        text: `Unable to synthesize research intelligence: ${err?.message || 'Server error'}.\n\nPlease ensure the backend service is online and GROQ_API_KEY is configured.`,
         disclaimer: 'Deterministic institutional metrics remain fully available across Faculty and Department dashboards.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };

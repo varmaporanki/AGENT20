@@ -71,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Groq AI Engine Status */}
             <span
               className={`badge-pill ${isConnected ? 'active-mode' : ''}`}
-              title={isConnected ? 'Connected to backend: Groq Primary + OpenAI Fallback' : 'Awaiting backend service at localhost:8000'}
+              title={isConnected ? 'Connected to backend: Groq Primary + OpenAI Fallback' : 'Awaiting backend service'}
             >
               <Activity size={13} color={isConnected ? '#059669' : '#d97706'} />
               <span style={{ fontWeight: 700 }}>

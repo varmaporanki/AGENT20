@@ -8,6 +8,7 @@ import { TopResearchersCard } from '../components/dashboard/TopResearchersCard';
 import { ResearchTrendsCard } from '../components/dashboard/ResearchTrendsCard';
 import { AssistantSpotlightCard } from '../components/dashboard/AssistantSpotlightCard';
 import { WifiOff } from 'lucide-react';
+import { API_BASE } from '../services/httpService';
 
 interface DashboardProps {
   onSelectFaculty: (empNo: string) => void;
@@ -102,7 +103,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         >
           <WifiOff size={16} color="#d97706" />
           <div>
-            <strong>Research data service unavailable.</strong> Platform is in real-data mode awaiting Teammate-1 API connection at <code>http://localhost:8000/api/v1</code>. No fabricated records are displayed.
+            <strong>Research data service unavailable.</strong> Platform is in real-data mode awaiting API connection at <code>{API_BASE}</code>. No fabricated records are displayed.
           </div>
         </div>
       )}

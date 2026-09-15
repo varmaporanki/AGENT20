@@ -3,6 +3,7 @@ import { facultyService, departmentService } from '../services/api';
 import type { FacultyMember, DepartmentInfo, DepartmentCode } from '../services/types';
 import { FacultyTable } from '../components/faculty/FacultyTable';
 import { Users, WifiOff } from 'lucide-react';
+import { API_BASE } from '../services/httpService';
 
 interface FacultyAnalyticsProps {
   onSelectFaculty: (empNo: string) => void;
@@ -78,7 +79,7 @@ export const FacultyAnalytics: React.FC<FacultyAnalyticsProps> = ({
         >
           <WifiOff size={16} color="#d97706" />
           <div>
-            <strong>Research data service unavailable.</strong> Showing empty state. Connect Teammate-1 API at <code>http://localhost:8000/api/v1</code> to load live faculty records.
+            <strong>Research data service unavailable.</strong> Showing empty state. Connect API at <code>{API_BASE}</code> to load live faculty records.
           </div>
         </div>
       )}
