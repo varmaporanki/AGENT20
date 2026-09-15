@@ -73,21 +73,9 @@ class GroqService:
 
         api_key = self.settings.GROQ_API_KEY
         if not api_key or api_key.strip() in ("", "your_groq_api_key_here"):
-            fresh_settings = get_settings()
-            if not fresh_settings.GROQ_API_KEY:
-                # Force re-read of Settings from .env file if cached instance was from before .env edit
-                try:
-                    from app.config import Settings
-                    fresh_settings = Settings()
-                except Exception:
-                    pass
-            if fresh_settings.GROQ_API_KEY and fresh_settings.GROQ_API_KEY.strip() not in ("", "your_groq_api_key_here"):
-                self.settings = fresh_settings
-                api_key = fresh_settings.GROQ_API_KEY
-            else:
-                raise GroqServiceUnavailableError(
-                    "Groq AI service is not configured. Please set a valid GROQ_API_KEY in the environment."
-                )
+            raise GroqServiceUnavailableError(
+                "Groq AI service is not configured. Please set a valid GROQ_API_KEY in the environment."
+            )
 
         try:
             self._client = Groq(

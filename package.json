@@ -1,0 +1,12 @@
+{
+  "name": "agent20",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Agent 20 frontend runner",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "lint": "npm --prefix frontend run lint",
+    "preview": "npm --prefix frontend run preview"
+  }
+}

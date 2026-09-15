@@ -1,0 +1,15 @@
+.git
+.gitignore
+.env
+**/.env
+**/.env.*
+!**/.env.example
+node_modules
+**/node_modules
+__pycache__
+**/*.pyc
+**/.pytest_cache
+frontend/dist
+.venv
+venv
+scratch

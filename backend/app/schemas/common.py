@@ -49,3 +49,4 @@ class PaginatedResponse(BaseModel, Generic[T]):
             self.total = self.pagination.total_items
         if self.total_pages is None:
             self.total_pages = self.pagination.total_pages
+
