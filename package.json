@@ -2,11 +2,14 @@
   "name": "agent20",
   "version": "1.0.0",
   "private": true,
-  "description": "Agent 20 frontend runner",
+  "description": "Agent 20 development orchestrator",
   "scripts": {
-    "dev": "npm --prefix frontend run dev",
+    "dev": "concurrently -k -n FRONTEND,BACKEND \"npm --prefix frontend run dev\" \"cd backend && python -m uvicorn app.main:app --reload --port 8000\"",
     "build": "npm --prefix frontend run build",
     "lint": "npm --prefix frontend run lint",
     "preview": "npm --prefix frontend run preview"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
   }
 }

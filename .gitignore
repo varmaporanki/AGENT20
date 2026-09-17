@@ -20,6 +20,7 @@ desktop.ini
 # Logs and temporary files
 *.log
 *.tmp
+node_modules/
 scratch/
 
 # Python cache files
